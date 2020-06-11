@@ -1,14 +1,16 @@
 package com.alexmegremis.planningpoker;
 
+import com.vaadin.annotations.Theme;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 
+@Theme("valo")
 @SpringUI
 public class PokerUI extends UI {
 
-    private TextField playerName = new TextField();
-    private TextField sessionName = new TextField();
+    private PlayerForm playerForm = new PlayerForm(this);
+    private SessionForm sessionForm = new SessionForm(this);
 
     @Override
     protected void init(final VaadinRequest vaadinRequest) {
@@ -16,8 +18,6 @@ public class PokerUI extends UI {
         final GridLayout sessionLayout = new GridLayout(5, 10);
         final VerticalLayout pokerLayout = new VerticalLayout();
 
-        playerName.setPlaceholder("your name");
-        sessionName.setPlaceholder("session name");
 
 
         final Button addPlayerButton = new Button("Add");
@@ -41,5 +41,13 @@ public class PokerUI extends UI {
         sessionLayout.addComponent(createSessionButton, 3, 2);
 
         this.setContent(playerLayout);
+    }
+
+    public void createdPlayer() {
+
+    }
+
+    public void createdSession() {
+
     }
 }

@@ -28,7 +28,7 @@ public class PokerService {
         Objects.requireNonNull(votes.putIfAbsent(sessionId, new HashMap<>())).put(playerId, vote);
     }
 
-    public SessionDTO findSession(final String sessionId) {
+    public static SessionDTO findSession(final String sessionId) {
         return sessions.get(sessionId);
     }
 }

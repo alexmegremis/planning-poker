@@ -4,10 +4,11 @@ import com.vaadin.data.Binder;
 import com.vaadin.ui.*;
 
 public class SessionForm extends FormLayout {
-    private TextField sessionId         = new TextField("Session ID");
-    private TextField sessionName       = new TextField("Player Name");
-    private Button    findSessionButton = new Button("Find");
-    private Button createSessionButton = new Button("Create");
+
+    private TextField sessionId           = new TextField("Session ID");
+    private TextField sessionName         = new TextField("Player Name");
+    private Button    findSessionButton   = new Button("Find");
+    private Button    createSessionButton = new Button("Create");
     Binder<SessionDTO> binder = new Binder<>(SessionDTO.class);
 
     private PokerUI pokerUI;
@@ -30,7 +31,8 @@ public class SessionForm extends FormLayout {
     }
 
     private void find() {
-        PokerService.
+        PokerService.findSession(sessionId.getValue());
+        sessionId.clear();
         setVisible(false);
     }
 }
