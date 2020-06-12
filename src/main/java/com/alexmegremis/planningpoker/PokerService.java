@@ -1,8 +1,7 @@
 package com.alexmegremis.planningpoker;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class PokerService {
@@ -28,6 +27,19 @@ public class PokerService {
         PlayerDTO result   = new PlayerDTO(playerId, playerName);
         players.put(playerId, result);
         return result;
+    }
+
+    public static void removePlayer(final PlayerDTO player) {
+        players.remove(player.getId());
+        votes.keySet().stream().forEach(s -> {
+            Iterator<VoteDTO> iterator = votes.get(s).iterator();
+            while (iterator.hasNext()) {
+                VoteDTO vote = iterator.next();
+                if(vote.getPlayer().getId().equals(player.getId())) {
+                    iterator.remove();
+                }
+            }
+        });
     }
 
     public static void vote(final SessionDTO session, final PlayerDTO player, final String vote) {

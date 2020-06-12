@@ -10,6 +10,10 @@ public class VoteDTO implements Serializable {
     private PlayerDTO player;
     private String vote;
 
+    public PlayerDTO getPlayer() {
+        return player;
+    }
+
     public String getPlayerName() {
         return player.getName();
     }

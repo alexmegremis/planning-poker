@@ -1,11 +1,10 @@
 package com.alexmegremis.planningpoker;
 
-import com.vaadin.annotations.PreserveOnRefresh;
-import com.vaadin.annotations.Theme;
-import com.vaadin.data.provider.*;
+import com.vaadin.annotations.*;
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.shared.Registration;
-import com.vaadin.shared.data.sort.SortDirection;
+import com.vaadin.shared.communication.PushMode;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -13,47 +12,50 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
-@Theme("valo")
+@Theme ("valo")
 @PreserveOnRefresh
+@Push (PushMode.AUTOMATIC)
 @SpringUI
 public class PokerUI extends UI implements Serializable {
 
-    private static final List<Grid<VoteDTO>> VOTES_GRIDS = new ArrayList<>();
-
-    private PlayerForm playerForm = new PlayerForm(this);
+    private PlayerForm  playerForm  = new PlayerForm(this);
     private SessionForm sessionForm = new SessionForm(this);
 
-    private PlayerDTO player;
+    private PlayerDTO  player;
     private SessionDTO session;
     private Long       knownSessionTimestamp;
 
-    private List<VoteDTO> votes = new ArrayList<>();
-    private Grid<VoteDTO> votesGrid = new Grid<>(VoteDTO.class);
+    private       List<VoteDTO> votes     = new ArrayList<>();
+    private final Grid<VoteDTO> votesGrid = new Grid<>(VoteDTO.class);
 
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-    final Label            labelSessionId      = new Label("Session ID");
-    final Label            labelSessionIdValue = new Label();
-    final Label            labelSessionName      = new Label("Session Name");
-    final Label            labelSessionNameValue = new Label();
-    final GridLayout sessionDetailsLayout = new GridLayout(2, 2, labelSessionId, labelSessionIdValue, labelSessionName, labelSessionNameValue);
-//    final VerticalLayout   sessionDetailsLayout  = new VerticalLayout(sessionIdDetails, sessionNameDetails);
+    final Label      labelSessionId        = new Label("Session ID");
+    final Label      labelSessionIdValue   = new Label();
+    final Label      labelSessionName      = new Label("Session Name");
+    final Label      labelSessionNameValue = new Label();
+    final Label      labelPlayerCount      = new Label("Player Count");
+    final Label      labelPlayerCountValue = new Label();
+    final Label      labelPlayerName       = new Label("Your Name");
+    final Label      labelPlayerNameValue  = new Label();
+    final GridLayout sessionDetailsLayout  = new GridLayout(4, 2, labelSessionId, labelSessionIdValue, labelPlayerCount, labelPlayerCountValue, labelSessionName,
+                                                            labelSessionNameValue, labelPlayerName, labelPlayerNameValue);
+
+    private static Integer playerCount;
 
     @Override
     protected void init(final VaadinRequest vaadinRequest) {
         executor.initialize();
 
-//        labelSessionId.setWidth("70%");
         labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
-//        labelSessionName.setWidth("70%");
         labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);
+        labelPlayerCountValue.setContentMode(ContentMode.PREFORMATTED);
+        labelPlayerNameValue.setContentMode(ContentMode.PREFORMATTED);
 
-        log.info(">>> NEW VIEW");
         final VerticalLayout pokerLayout = new VerticalLayout();
 
         labelSessionIdValue.setEnabled(false);
@@ -64,54 +66,49 @@ public class PokerUI extends UI implements Serializable {
         sessionDetailsLayout.setVisible(false);
         sessionForm.setVisible(false);
         votesGrid.setVisible(false);
+        votesGrid.setColumns("playerName", "vote");
 
         this.setContent(pokerLayout);
 
-        Runnable bgChecker = () -> {
-            boolean doContinue = true;
-            do {
-                if(session != null) {
-                    Long latestSessionTimestamp = PokerService.modification.get(session);
-                    if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
-                        knownSessionTimestamp = latestSessionTimestamp;
-                        populateVotes();
-                    }
-                    try {
-                        Thread.sleep(200l);
-                    } catch (InterruptedException e) {
-                        doContinue = false;
-                        log.info(">>> end checking for {}, for {}", session.getId(), player.getName());
-                    }
-                }
-            } while (doContinue);
-        };
+//        Runnable bgChecker = () -> {
+//            boolean doContinue = true;
+//            do {
+//                if (session != null) {
+//                    Long latestSessionTimestamp = PokerService.modification.get(session);
+//                    if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
+//                        knownSessionTimestamp = latestSessionTimestamp;
+//                        populateVotes();
+//                    }
+//                    try {
+//                        Thread.sleep(200l);
+//                    } catch (InterruptedException e) {
+//                        doContinue = false;
+//                        log.info(">>> end checking for {}, for {}", session.getId(), player.getName());
+//                    }
+//                }
+//            } while (doContinue);
+//        };
+//
+//        executor.execute(bgChecker);
+    }
 
-        executor.execute(bgChecker);
-
-        ListDataProvider<VoteDTO> dataProvider = DataProvider.fromStream(votes.stream());
-        votesGrid.setDataProvider(dataProvider);
-
-        votesGrid.setResponsive(true);
-        VOTES_GRIDS.add(votesGrid);
+    @Override
+    public void detach() {
+        PokerService.removePlayer(player);
+        log.info(">>> player {} has detached", player.getName());
+        player = null;
+        super.detach();
     }
 
     private void populateVotes() {
         votes.clear();
         votes.addAll(PokerService.votes.get(session));
-        log.info(">>> updating votes for {}, for {}", session.getId(), player.getName());
-
-        VOTES_GRIDS.stream().forEach(g -> {
-            g.setItems(votes);
-            g.markAsDirtyRecursive();
-            g.getDataCommunicator().reset();
-            g.getDataProvider().refreshAll();
-            log.info(">>> updated grid {} with {} votes", g, votes.size()   );
+        log.info(">>> updating {} votes for {}, for {}", votes.size(), session.getId(), player.getName());
+        this.access(() -> {
+            votesGrid.setItems(votes);
+            votesGrid.getDataProvider().refreshAll();
+            log.info(">>> updated asynchronously {} votes for {}, for {}", votes.size(), session.getId(), player.getName());
         });
-//        votesGrid.setItems(votes);
-//        votesGrid.markAsDirty();
-//        votesGrid.getDataProvider().refreshAll();
-//        votesGrid.getDataCommunicator().reset();
-//        Notification.show("votes updated");
     }
 
     public void setPlayer(final PlayerDTO player) {
@@ -119,6 +116,10 @@ public class PokerUI extends UI implements Serializable {
         sessionForm.setVisible(true);
         this.player = player;
         Notification.show("Player created");
+        this.labelPlayerNameValue.setValue(player.getName());
+//        this.access(() -> {
+//            this.labelPlayerCountValue.setValue(String.valueOf(PokerService.players.size()));
+//        });
     }
 
     public void setSession(final SessionDTO session) {
