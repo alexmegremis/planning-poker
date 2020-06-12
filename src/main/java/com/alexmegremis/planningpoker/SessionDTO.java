@@ -2,12 +2,14 @@ package com.alexmegremis.planningpoker;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SessionDTO {
+public class SessionDTO implements Serializable {
+
     private String id;
     private String name;
 

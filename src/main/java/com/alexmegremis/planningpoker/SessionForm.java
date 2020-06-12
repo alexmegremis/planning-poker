@@ -6,10 +6,10 @@ import com.vaadin.ui.*;
 public class SessionForm extends FormLayout {
 
     private TextField sessionId           = new TextField("Session ID");
-    private TextField sessionName         = new TextField("Player Name");
+    private TextField sessionName         = new TextField("Session Name");
     private Button    findSessionButton   = new Button("Find");
     private Button    createSessionButton = new Button("Create");
-    Binder<SessionDTO> binder = new Binder<>(SessionDTO.class);
+    private SessionDTO session;
 
     private PokerUI pokerUI;
 
@@ -19,20 +19,25 @@ public class SessionForm extends FormLayout {
         addComponents(sessionId, findSessionButton);
         addComponents(sessionName, createSessionButton);
 
-        binder.bindInstanceFields(this);
+//        binder.bindInstanceFields(this);
 
-        findSessionButton.addClickListener(e -> this.save());
+        createSessionButton.addClickListener(e -> this.save());
+        findSessionButton.addClickListener(e -> this.find());
     }
 
     private void save() {
-        PokerService.createSession(sessionName.getValue());
+        SessionDTO session = PokerService.createSession(sessionName.getValue());
         sessionName.clear();
-        setVisible(false);
+        pokerUI.setSession(session);
     }
 
     private void find() {
-        PokerService.findSession(sessionId.getValue());
-        sessionId.clear();
-        setVisible(false);
+        SessionDTO session = PokerService.findSession(this.sessionId.getValue());
+        if(session != null) {
+            this.sessionId.clear();
+            pokerUI.setSession(session);
+        } else {
+            Notification.show("Session ID not found", Notification.Type.ERROR_MESSAGE);
+        }
     }
 }

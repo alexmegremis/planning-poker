@@ -2,12 +2,13 @@ package com.alexmegremis.planningpoker;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlayerDTO {
+public class PlayerDTO implements Serializable {
     private String id;
     private String name;
 
