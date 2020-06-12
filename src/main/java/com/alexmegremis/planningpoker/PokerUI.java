@@ -2,7 +2,10 @@ package com.alexmegremis.planningpoker;
 
 import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Theme;
+import com.vaadin.data.provider.*;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.Registration;
+import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -10,8 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Theme("valo")
@@ -19,7 +23,7 @@ import java.util.List;
 @SpringUI
 public class PokerUI extends UI implements Serializable {
 
-    private static final List<Grid> VOTES_GRIDS = new ArrayList<>();
+    private static final List<Grid<VoteDTO>> VOTES_GRIDS = new ArrayList<>();
 
     private PlayerForm playerForm = new PlayerForm(this);
     private SessionForm sessionForm = new SessionForm(this);
@@ -28,7 +32,7 @@ public class PokerUI extends UI implements Serializable {
     private SessionDTO session;
     private Long       knownSessionTimestamp;
 
-    private List<VoteDTO> votes;
+    private List<VoteDTO> votes = new ArrayList<>();
     private Grid<VoteDTO> votesGrid = new Grid<>(VoteDTO.class);
 
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -84,17 +88,30 @@ public class PokerUI extends UI implements Serializable {
 
         executor.execute(bgChecker);
 
+        ListDataProvider<VoteDTO> dataProvider = DataProvider.fromStream(votes.stream());
+        votesGrid.setDataProvider(dataProvider);
+
+        votesGrid.setResponsive(true);
         VOTES_GRIDS.add(votesGrid);
     }
 
     private void populateVotes() {
-        votes = PokerService.votes.get(session);
+        votes.clear();
+        votes.addAll(PokerService.votes.get(session));
         log.info(">>> updating votes for {}, for {}", session.getId(), player.getName());
-        votesGrid.setItems(votes);
-        votesGrid.markAsDirty();
-        votesGrid.getDataProvider().refreshAll();
-        votesGrid.getDataCommunicator().reset();
-        Notification.show("votes updated");
+
+        VOTES_GRIDS.stream().forEach(g -> {
+            g.setItems(votes);
+            g.markAsDirtyRecursive();
+            g.getDataCommunicator().reset();
+            g.getDataProvider().refreshAll();
+            log.info(">>> updated grid {} with {} votes", g, votes.size()   );
+        });
+//        votesGrid.setItems(votes);
+//        votesGrid.markAsDirty();
+//        votesGrid.getDataProvider().refreshAll();
+//        votesGrid.getDataCommunicator().reset();
+//        Notification.show("votes updated");
     }
 
     public void setPlayer(final PlayerDTO player) {
