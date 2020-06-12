@@ -1,19 +1,25 @@
 package com.alexmegremis.planningpoker;
 
+import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Theme;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Theme("valo")
+@PreserveOnRefresh
 @SpringUI
 public class PokerUI extends UI implements Serializable {
+
+    private static final List<Grid> VOTES_GRIDS = new ArrayList<>();
 
     private PlayerForm playerForm = new PlayerForm(this);
     private SessionForm sessionForm = new SessionForm(this);
@@ -27,25 +33,31 @@ public class PokerUI extends UI implements Serializable {
 
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-    final Label labelSessionId = new Label("Session ID");
-    final TextField fieldSessionId = new TextField();
-    final Label labelSessionName = new Label("Session Name");
-    final TextField fieldSessionName = new TextField();
-    final GridLayout sessionLayout = new GridLayout(4, 1, labelSessionId, fieldSessionId, labelSessionName, fieldSessionName);
+    final Label            labelSessionId      = new Label("Session ID");
+    final Label            labelSessionIdValue = new Label();
+    final Label            labelSessionName      = new Label("Session Name");
+    final Label            labelSessionNameValue = new Label();
+    final GridLayout sessionDetailsLayout = new GridLayout(2, 2, labelSessionId, labelSessionIdValue, labelSessionName, labelSessionNameValue);
+//    final VerticalLayout   sessionDetailsLayout  = new VerticalLayout(sessionIdDetails, sessionNameDetails);
 
     @Override
     protected void init(final VaadinRequest vaadinRequest) {
         executor.initialize();
 
+//        labelSessionId.setWidth("70%");
+        labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
+//        labelSessionName.setWidth("70%");
+        labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);
+
         log.info(">>> NEW VIEW");
         final VerticalLayout pokerLayout = new VerticalLayout();
 
-        fieldSessionId.setEnabled(false);
-        fieldSessionName.setEnabled(true);
-        sessionLayout.setVisible(false);
+        labelSessionIdValue.setEnabled(false);
+        labelSessionNameValue.setEnabled(true);
+        sessionDetailsLayout.setVisible(false);
 
-        pokerLayout.addComponents(sessionLayout, playerForm, sessionForm, votesGrid);
-        sessionLayout.setVisible(false);
+        pokerLayout.addComponents(sessionDetailsLayout, playerForm, sessionForm, votesGrid);
+        sessionDetailsLayout.setVisible(false);
         sessionForm.setVisible(false);
         votesGrid.setVisible(false);
 
@@ -71,12 +83,15 @@ public class PokerUI extends UI implements Serializable {
         };
 
         executor.execute(bgChecker);
+
+        VOTES_GRIDS.add(votesGrid);
     }
 
     private void populateVotes() {
         votes = PokerService.votes.get(session);
         log.info(">>> updating votes for {}, for {}", session.getId(), player.getName());
         votesGrid.setItems(votes);
+        votesGrid.markAsDirty();
         votesGrid.getDataProvider().refreshAll();
         votesGrid.getDataCommunicator().reset();
         Notification.show("votes updated");
@@ -94,10 +109,10 @@ public class PokerUI extends UI implements Serializable {
         this.session = session;
         this.knownSessionTimestamp = PokerService.modification.get(session);
 
-        fieldSessionId.setValue(session.getId());
-        fieldSessionName.setValue(session.getName());
+        labelSessionIdValue.setValue(session.getId());
+        labelSessionNameValue.setValue(session.getName());
 
-        sessionLayout.setVisible(true);
+        sessionDetailsLayout.setVisible(true);
 
         PokerService.vote(session, player, "5");
 
