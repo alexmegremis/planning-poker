@@ -1,6 +1,5 @@
 package com.alexmegremis.planningpoker;
 
-import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.GridLayout;
 
 public class VoteForm extends GridLayout {

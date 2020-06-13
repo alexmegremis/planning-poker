@@ -1,7 +1,8 @@
 package com.alexmegremis.planningpoker;
 
-import com.vaadin.data.Binder;
 import com.vaadin.ui.*;
+
+import java.util.Optional;
 
 public class SessionForm extends FormLayout {
 
@@ -19,8 +20,6 @@ public class SessionForm extends FormLayout {
         addComponents(sessionId, findSessionButton);
         addComponents(sessionName, createSessionButton);
 
-//        binder.bindInstanceFields(this);
-
         createSessionButton.addClickListener(e -> this.save());
         findSessionButton.addClickListener(e -> this.find());
     }
@@ -32,10 +31,10 @@ public class SessionForm extends FormLayout {
     }
 
     private void find() {
-        SessionDTO session = PokerService.findSession(this.sessionId.getValue());
-        if(session != null) {
+        Optional<SessionDTO> session = PokerService.findSession(this.sessionId.getValue());
+        if(session.isPresent()) {
             this.sessionId.clear();
-            pokerUI.setSession(session);
+            pokerUI.setSession(session.get());
         } else {
             Notification.show("Session ID not found", Notification.Type.ERROR_MESSAGE);
         }
