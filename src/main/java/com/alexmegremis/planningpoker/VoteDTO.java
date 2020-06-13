@@ -1,14 +1,17 @@
 package com.alexmegremis.planningpoker;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
-@AllArgsConstructor
+@Builder
 public class VoteDTO implements Serializable {
+
     private SessionDTO session;
-    private PlayerDTO player;
-    private String vote;
+    private PlayerDTO  player;
+    @Getter
+    @Setter
+    private String     vote;
 
     public PlayerDTO getPlayer() {
         return player;
@@ -16,9 +19,5 @@ public class VoteDTO implements Serializable {
 
     public String getPlayerName() {
         return player.getName();
-    }
-
-    public String getVote() {
-        return vote;
     }
 }

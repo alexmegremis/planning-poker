@@ -62,6 +62,7 @@ public class PokerUI extends UI implements Serializable, View {
     private Button getVoteButton(final String caption) {
         Button result = new Button(caption);
         result.setWidth("5em");
+        result.addClickListener(event -> PokerService.vote(session,player,caption));
         return result;
     }
 
@@ -173,6 +174,6 @@ public class PokerUI extends UI implements Serializable, View {
         sessionDetailsLayout.setVisible(true);
         votesGrid.setVisible(true);
 
-        PokerService.vote(session, player, "5");
+//        PokerService.vote(session, player, "5");
     }
 }

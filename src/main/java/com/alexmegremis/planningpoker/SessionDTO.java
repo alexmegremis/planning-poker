@@ -5,8 +5,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Builder
@@ -41,7 +40,12 @@ public class SessionDTO implements Serializable {
     }
 
     public void vote(final PlayerDTO player, final String vote) {
-        votes.add(new VoteDTO(this, player, vote));
+        Optional<VoteDTO> existingVote = votes.stream().filter(aVote -> aVote.getPlayer().equals(player)).findFirst();
+        if (existingVote.isPresent()) {
+            existingVote.get().setVote(vote);
+        } else {
+            votes.add(VoteDTO.builder().session(this).player(player).vote(vote).build());
+        }
         updateLastModificationTimestamp();
     }
 
