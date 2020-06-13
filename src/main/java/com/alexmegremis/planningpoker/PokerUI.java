@@ -37,21 +37,21 @@ public class PokerUI extends UI implements Serializable, View {
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     private       Runnable               bgChecker;
 
-    private final Label      labelSessionId        = new Label("Session ID");
-    private final Label      labelSessionIdValue   = new Label();
-    private final Label      labelSessionName      = new Label("Session Name");
-    private final Label      labelSessionNameValue = new Label();
-    private final Label      labelPlayerCount      = new Label("Player Count");
-    private final Label      labelPlayerCountValue = new Label();
-    private final Label      labelPlayerName       = new Label("Your Name");
-    private final Label      labelPlayerNameValue  = new Label();
-    private final GridLayout sessionDetailsLayout  = new GridLayout(7, 2);
-
-    final GridLayout voteOptionsGrid = new GridLayout(3, 4);
+    private final Label            labelSessionId        = new Label("Session ID");
+    private final Label            labelSessionIdValue   = new Label();
+    private final Label            labelSessionName      = new Label("Session Name");
+    private final Label            labelSessionNameValue = new Label();
+    private final Label            labelPlayerCount      = new Label("Player Count");
+    private final Label            labelPlayerCountValue = new Label();
+    private final Label            labelPlayerName       = new Label("Your Name");
+    private final Label            labelPlayerNameValue  = new Label();
+    private final GridLayout       sessionDetailsLayout  = new GridLayout(7, 2);
+    private final VerticalLayout   pokerLayout           = new VerticalLayout();
+    private final HorizontalLayout votesLayout           = new HorizontalLayout();
 
     private Integer playerCount = 0;
 
-    public static final float[] nums = new float[] { 0, 0.5f, 1, 2, 3, 5, 8, 13, 20, 40, 100};
+    public static final float[] nums = new float[] {0, 0.5f, 1, 2, 3, 5, 8, 13, 20, 40, 100};
 
     private Label getSpacer() {
         final Label spacer = new Label("&nbsp;", ContentMode.HTML);
@@ -62,28 +62,34 @@ public class PokerUI extends UI implements Serializable, View {
     private Button getVoteButton(final String caption) {
         Button result = new Button(caption);
         result.setWidth("5em");
-        result.addClickListener(event -> PokerService.vote(session,player,caption));
+        result.addClickListener(event -> PokerService.vote(session, player, caption));
+        return result;
+    }
+
+    private GridLayout createVotingGrid() {
+        final GridLayout result = new GridLayout(2, 6);
+
+        NumberFormat numberFormat = NumberFormat.getInstance();
+        for (int i = 0; i < nums.length; i++) {
+            result.addComponent(getVoteButton(numberFormat.format(nums[i])));
+        }
+
+        result.addComponent(getVoteButton("?"));
+
         return result;
     }
 
     @Override
     protected void init(final VaadinRequest vaadinRequest) {
         initSessionDetailsDisplay();
-        final VerticalLayout pokerLayout = new VerticalLayout();
-
-        NumberFormat numberFormat = NumberFormat.getInstance();
-        for(int i = 0; i < nums.length; i++) {
-            voteOptionsGrid.addComponent(getVoteButton(numberFormat.format(nums[i])));
-        }
-
-        voteOptionsGrid.addComponent(getVoteButton("?"));
-
+        votesLayout.addComponents(votesGrid, createVotingGrid());
+        votesLayout.setVisible(false);
         sessionDetailsLayout.setVisible(false);
 
-        pokerLayout.addComponents(sessionDetailsLayout, playerForm, sessionForm, votesGrid, voteOptionsGrid);
+        pokerLayout.addComponents(sessionDetailsLayout, playerForm, sessionForm, votesLayout);
         sessionDetailsLayout.setVisible(false);
         sessionForm.setVisible(false);
-        votesGrid.setVisible(false);
+//        votesGrid.setVisible(false);
         votesGrid.setColumns("playerName", "vote");
 
         initBgChecker();
@@ -172,7 +178,7 @@ public class PokerUI extends UI implements Serializable, View {
         labelSessionNameValue.setValue(session.getName());
 
         sessionDetailsLayout.setVisible(true);
-        votesGrid.setVisible(true);
+        votesLayout.setVisible(true);
 
 //        PokerService.vote(session, player, "5");
     }
