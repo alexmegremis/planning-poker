@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,9 +47,11 @@ public class PokerUI extends UI implements Serializable, View {
     private final Label      labelPlayerNameValue  = new Label();
     private final GridLayout sessionDetailsLayout  = new GridLayout(7, 2);
 
-    final GridLayout voteOptionsGrid = new GridLayout(3, 3);
+    final GridLayout voteOptionsGrid = new GridLayout(3, 4);
 
     private Integer playerCount = 0;
+
+    public static final float[] nums = new float[] { 0, 0.5f, 1, 2, 3, 5, 8, 13, 20, 40, 100};
 
     private Label getSpacer() {
         final Label spacer = new Label("&nbsp;", ContentMode.HTML);
@@ -56,32 +59,38 @@ public class PokerUI extends UI implements Serializable, View {
         return spacer;
     }
 
+    private Button getVoteButton(final String caption) {
+        Button result = new Button(caption);
+        result.setWidth("5em");
+        return result;
+    }
+
     @Override
     protected void init(final VaadinRequest vaadinRequest) {
-        executor.initialize();
-
-        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(), labelSessionIdValue, getSpacer(), labelPlayerCount, getSpacer(), labelPlayerCountValue, labelSessionName, getSpacer(),
-                                           labelSessionNameValue, getSpacer(), labelPlayerName, getSpacer(), labelPlayerNameValue);
-
-        labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
-        labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);
-        labelPlayerCountValue.setContentMode(ContentMode.PREFORMATTED);
-        labelPlayerNameValue.setContentMode(ContentMode.PREFORMATTED);
-
+        initSessionDetailsDisplay();
         final VerticalLayout pokerLayout = new VerticalLayout();
 
-        labelSessionIdValue.setEnabled(false);
-        labelSessionNameValue.setEnabled(true);
+        NumberFormat numberFormat = NumberFormat.getInstance();
+        for(int i = 0; i < nums.length; i++) {
+            voteOptionsGrid.addComponent(getVoteButton(numberFormat.format(nums[i])));
+        }
+
+        voteOptionsGrid.addComponent(getVoteButton("?"));
+
         sessionDetailsLayout.setVisible(false);
 
-        pokerLayout.addComponents(sessionDetailsLayout, playerForm, sessionForm, votesGrid);
+        pokerLayout.addComponents(sessionDetailsLayout, playerForm, sessionForm, votesGrid, voteOptionsGrid);
         sessionDetailsLayout.setVisible(false);
         sessionForm.setVisible(false);
         votesGrid.setVisible(false);
         votesGrid.setColumns("playerName", "vote");
 
-        this.setContent(pokerLayout);
+        initBgChecker();
 
+        this.setContent(pokerLayout);
+    }
+
+    private void initBgChecker() {
         bgChecker = () -> {
             boolean doContinue = true;
             do {
@@ -109,7 +118,18 @@ public class PokerUI extends UI implements Serializable, View {
             } while (doContinue);
         };
 
+        executor.initialize();
         executor.execute(bgChecker);
+    }
+
+    private void initSessionDetailsDisplay() {
+        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(), labelSessionIdValue, getSpacer(), labelPlayerCount, getSpacer(), labelPlayerCountValue, labelSessionName,
+                                           getSpacer(), labelSessionNameValue, getSpacer(), labelPlayerName, getSpacer(), labelPlayerNameValue);
+
+        labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
+        labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);
+        labelPlayerCountValue.setContentMode(ContentMode.PREFORMATTED);
+        labelPlayerNameValue.setContentMode(ContentMode.PREFORMATTED);
     }
 
     @Override
