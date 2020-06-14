@@ -15,6 +15,13 @@ public class PokerService {
         String     sessionId = String.valueOf((Math.round(Math.random() * ((999999 - 100000) + 1)) + 100000));
         SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).build();
         sessions.add(result);
+
+        for(int i = 1; i < 11; i++) {
+            PlayerDTO player = createPlayer("Session_" + sessionId + "_TestPlayer_" + i);
+            result.addPlayer(player);
+            vote(result, player, "test");
+        }
+
         return result;
     }
 

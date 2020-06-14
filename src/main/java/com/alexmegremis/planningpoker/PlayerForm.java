@@ -15,6 +15,9 @@ public class PlayerForm extends FormLayout {
         setSizeUndefined();
         addComponents(playerName, playerCreateButton);
         playerCreateButton.addClickListener(e -> this.save());
+
+        playerName.setValue("Alex");
+        playerName.setReadOnly(true);
     }
 
     private void save() {

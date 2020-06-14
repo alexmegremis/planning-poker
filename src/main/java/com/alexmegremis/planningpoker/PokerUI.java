@@ -46,8 +46,9 @@ public class PokerUI extends UI implements Serializable, View {
     private final Label            labelPlayerName       = new Label("Your Name");
     private final Label            labelPlayerNameValue  = new Label();
     private final GridLayout       sessionDetailsLayout  = new GridLayout(7, 2);
-    private final VerticalLayout   pokerLayout           = new VerticalLayout();
+    private final CssLayout        pokerLayout           = new CssLayout();
     private final HorizontalLayout votesLayout           = new HorizontalLayout();
+    private final CssLayout        issueLayout           = new CssLayout();
 
     private Integer playerCount = 0;
 
@@ -79,22 +80,46 @@ public class PokerUI extends UI implements Serializable, View {
         return result;
     }
 
+    private CssLayout createIssueLayout() {
+        return null;
+    }
+
     @Override
     protected void init(final VaadinRequest vaadinRequest) {
+
+        final VerticalLayout wrapper = new VerticalLayout();
+
+        votesGrid.getColumn("vote").setWidth(100);
+        votesGrid.getColumn("playerName").setMinimumWidthFromContent(true);
+        votesGrid.setWidthFull();
+
+        GridLayout votingGrid = createVotingGrid();
+        votingGrid.setWidthUndefined();
+        votingGrid.setHeightUndefined();
+
         initSessionDetailsDisplay();
-        votesLayout.addComponents(votesGrid, createVotingGrid());
+        votesLayout.addComponents(votesGrid, votingGrid);
         votesLayout.setVisible(false);
+        votesLayout.setSpacing(true);
+        votesLayout.setWidthFull();
+        votesLayout.setHeightUndefined();
         sessionDetailsLayout.setVisible(false);
 
-        pokerLayout.addComponents(sessionDetailsLayout, playerForm, sessionForm, votesLayout);
-        sessionDetailsLayout.setVisible(false);
+        pokerLayout.addComponents(playerForm, sessionForm, votesLayout);
         sessionForm.setVisible(false);
 //        votesGrid.setVisible(false);
         votesGrid.setColumns("playerName", "vote");
 
         initBgChecker();
 
-        this.setContent(pokerLayout);
+        pokerLayout.setSizeFull();
+        sessionDetailsLayout.setVisible(false);
+        sessionDetailsLayout.setHeight("6em");
+        sessionDetailsLayout.setWidth("40em");
+        votesLayout.setWidthFull();
+        votesLayout.setHeightUndefined();
+        wrapper.addComponents(sessionDetailsLayout, pokerLayout);
+        this.setContent(wrapper);
     }
 
     private void initBgChecker() {
