@@ -192,10 +192,10 @@ public class PokerUI extends UI implements Serializable, View {
                     if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
                         knownSessionTimestamp = latestSessionTimestamp;
                         populateVotes();
-                        this.votesResults.setValue(session.getVoteResult());
-                        this.votesResults.setValue(session.getVoteResult());
-                        this.votesResults.setVisible(session.getShowVotes());
-                        this.votesResults.setVisible(session.getShowVotes());
+                        this.access(() -> {
+                            this.votesResults.setValue(session.getVoteResult());
+                            this.votesResults.setVisible(session.getShowVotes());
+                        });
                         log.info(">>> updated session {} for {}, session showVotes is {}, UI {} showVotes is {}", session.getId(), player.getName(), session.getShowVotes(), votesResults, votesResults.isVisible());
                     }
 
