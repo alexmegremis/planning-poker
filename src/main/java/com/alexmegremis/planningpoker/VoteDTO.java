@@ -29,16 +29,15 @@ public class VoteDTO implements Serializable {
     }
 
     public void hideVote() {
-        vote = FontAwesome.EYE_SLASH.getHtml();
+        if(StringUtils.isEmpty(this.privateVote)) {
+            this.vote = "";
+        } else {
+            this.vote = FontAwesome.EYE_SLASH.getHtml();;
+        }
     }
 
     public void vote(final String vote) {
         privateVote = vote;
-        if(StringUtils.isEmpty(vote)) {
-            this.vote = vote;
-        } else {
-            this.vote = FontAwesome.EYE_SLASH.getHtml();;
-        }
         hideVote();
     }
 }

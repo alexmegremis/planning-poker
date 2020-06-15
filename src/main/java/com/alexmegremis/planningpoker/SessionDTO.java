@@ -1,12 +1,14 @@
 package com.alexmegremis.planningpoker;
 
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 @Builder
 public class SessionDTO implements Serializable {
 
@@ -46,10 +48,12 @@ public class SessionDTO implements Serializable {
         Optional<VoteDTO> existingVote = votes.stream().filter(aVote -> aVote.getPlayer().equals(player)).findFirst();
         if (existingVote.isPresent()) {
             existingVote.get().vote(vote);
+            log.info(">>> {} voted {} - updated", player.getName(), vote);
         } else {
             VoteDTO newVote = VoteDTO.builder().session(this).player(player).build();
             newVote.vote(vote);
             votes.add(newVote);
+            log.info(">>> {} voted {} - new", player.getName(), vote);
         }
         voteResult = PokerService.getVoteResults(this);
         updateLastModificationTimestamp();

@@ -24,7 +24,7 @@ public class PokerService {
         SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).build();
         sessions.add(result);
 
-        for (int i = 1; i < 11; i++) {
+        for (int i = 1; i < 4; i++) {
             PlayerDTO player = createPlayer("Session_" + sessionId + "_TestPlayer_" + i);
             result.addPlayer(player);
             int randomNum = ThreadLocalRandom.current().nextInt(0, PokerUI.nums.length);
@@ -44,7 +44,11 @@ public class PokerService {
 
     public static String getVoteResults(final SessionDTO session) {
 
-        Map<String, Long> collect = session.getVotes().stream().filter(v -> !StringUtils.isEmpty(v.getPrivateVote())).map(VoteDTO :: getPrivateVote).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        Map<String, Long> collect = session.getVotes()
+                                           .stream()
+                                           .filter(v -> ! StringUtils.isEmpty(v.getPrivateVote()))
+                                           .map(VoteDTO :: getPrivateVote)
+                                           .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         Optional<Long>    max     = collect.values().stream().max(Comparator.naturalOrder());
         String            result  = "n/a";
         if (max.isPresent()) {
@@ -63,6 +67,7 @@ public class PokerService {
 
     public static void vote(final SessionDTO session, final PlayerDTO player, final String vote) {
         session.voteInSession(player, vote);
+        log.info(">>> {} voted {}", player.getName(), vote);
         hideVotes(session);
     }
 
@@ -81,6 +86,5 @@ public class PokerService {
 
     public static void resetVotes(final SessionDTO session) {
         session.getPlayers().forEach(p -> PokerService.vote(session, p, ""));
-        session.setVoteResult("n/a");
     }
 }
