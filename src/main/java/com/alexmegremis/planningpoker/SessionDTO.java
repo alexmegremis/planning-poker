@@ -1,7 +1,6 @@
 package com.alexmegremis.planningpoker;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -17,6 +16,9 @@ public class SessionDTO implements Serializable {
     private String name;
     @Getter
     private Long   lastModificationTimestamp = Instant.now().toEpochMilli();
+    @Getter
+    @Setter
+    private String voteResult;
 
     @Getter
     private final List<PlayerDTO> players = new CopyOnWriteArrayList<>();
@@ -26,6 +28,7 @@ public class SessionDTO implements Serializable {
 
     public void addPlayer(final PlayerDTO player) {
         players.add(player);
+        vote(player, "");
         updateLastModificationTimestamp();
     }
 
@@ -42,14 +45,20 @@ public class SessionDTO implements Serializable {
     public void vote(final PlayerDTO player, final String vote) {
         Optional<VoteDTO> existingVote = votes.stream().filter(aVote -> aVote.getPlayer().equals(player)).findFirst();
         if (existingVote.isPresent()) {
-            existingVote.get().setVote(vote);
+            existingVote.get().vote(vote);
         } else {
-            votes.add(VoteDTO.builder().session(this).player(player).vote(vote).build());
+            votes.add(VoteDTO.builder().session(this).player(player).privateVote(vote).vote("").build());
         }
+        voteResult = PokerService.getVoteResults(this);
         updateLastModificationTimestamp();
     }
 
-    private void updateLastModificationTimestamp() {
+    public void resetVotes() {
+        votes.clear();
+        players.forEach(p -> vote(p, ""));
+    }
+
+    public void updateLastModificationTimestamp() {
         lastModificationTimestamp = Instant.now().toEpochMilli();
     }
 

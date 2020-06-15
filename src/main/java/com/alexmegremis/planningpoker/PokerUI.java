@@ -1,5 +1,7 @@
 package com.alexmegremis.planningpoker;
 
+import com.alexmegremis.planningpoker.integration.jira.IssueView;
+import com.alexmegremis.planningpoker.integration.jira.JiraService;
 import com.vaadin.annotations.*;
 import com.vaadin.navigator.View;
 import com.vaadin.server.VaadinRequest;
@@ -8,21 +10,28 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.HtmlRenderer;
+import com.vaadin.ui.renderers.TextRenderer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.Serializable;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.vaadin.ui.Grid.Column;
 
 @Slf4j
 @Theme ("valo")
 @PreserveOnRefresh
 @Push (PushMode.AUTOMATIC)
 @SpringUI
-@SpringView
+@SpringView(name = "Planning Poker")
 public class PokerUI extends UI implements Serializable, View {
+
+    @Autowired
+    private JiraService jiraService;
 
     private final PlayerForm  playerForm  = new PlayerForm(this);
     private final SessionForm sessionForm = new SessionForm(this);
@@ -30,12 +39,14 @@ public class PokerUI extends UI implements Serializable, View {
     private PlayerDTO  player;
     private SessionDTO session;
     private Long       knownSessionTimestamp;
+    private Runnable   bgChecker;
+    private IssueView  issueView;
+    private TextField  votesResults = new TextField("Results");
 
     private final List<VoteDTO> votes     = new ArrayList<>();
-    private final Grid<VoteDTO> votesGrid = new Grid<>(VoteDTO.class);
+    private final Grid<VoteDTO> votesGrid = new Grid<>();
 
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    private       Runnable               bgChecker;
 
     private final Label            labelSessionId        = new Label("Session ID");
     private final Label            labelSessionIdValue   = new Label();
@@ -48,11 +59,10 @@ public class PokerUI extends UI implements Serializable, View {
     private final GridLayout       sessionDetailsLayout  = new GridLayout(7, 2);
     private final CssLayout        pokerLayout           = new CssLayout();
     private final HorizontalLayout votesLayout           = new HorizontalLayout();
-    private final CssLayout        issueLayout           = new CssLayout();
 
     private Integer playerCount = 0;
 
-    public static final float[] nums = new float[] {0, 0.5f, 1, 2, 3, 5, 8, 13, 20, 40, 100};
+    public static final String[] nums = new String[] {"0", "0.5", "1", "2", "3", "5", "8", "13", "20", "40", "100", "?"};
 
     private Label getSpacer() {
         final Label spacer = new Label("&nbsp;", ContentMode.HTML);
@@ -63,19 +73,38 @@ public class PokerUI extends UI implements Serializable, View {
     private Button getVoteButton(final String caption) {
         Button result = new Button(caption);
         result.setWidth("5em");
-        result.addClickListener(event -> PokerService.vote(session, player, caption));
+        result.addClickListener(event -> {
+            PokerService.vote(session, player, caption);
+            this.votesResults.setVisible(false);
+        });
         return result;
     }
 
     private GridLayout createVotingGrid() {
-        final GridLayout result = new GridLayout(2, 6);
+        final GridLayout result = new GridLayout(2, 10);
 
-        NumberFormat numberFormat = NumberFormat.getInstance();
         for (int i = 0; i < nums.length; i++) {
-            result.addComponent(getVoteButton(numberFormat.format(nums[i])));
+            result.addComponent(getVoteButton(nums[i]));
         }
 
-        result.addComponent(getVoteButton("?"));
+        result.addComponent(getSpacer(), 0, 6, 1, 7);
+        Button revealVotes = new Button("Show");
+        revealVotes.setWidth("10em");
+        votesResults.setWidth("10em");
+        result.addComponent(revealVotes, 0, 8, 1, 8);
+        revealVotes.addClickListener(event -> {
+            PokerService.revealVotes(session);
+            votesResults.setVisible(true);
+            votesResults.setValue(session.getVoteResult());
+        });
+
+        result.insertRow(9);
+        result.insertRow(9);
+        result.insertRow(9);
+        result.addComponent(getSpacer(), 0, 9, 1, 9);
+        result.addComponent(votesResults, 0, 10, 1, 10);
+        votesResults.setReadOnly(true);
+        votesResults.setVisible(false);
 
         return result;
     }
@@ -89,16 +118,31 @@ public class PokerUI extends UI implements Serializable, View {
 
         final VerticalLayout wrapper = new VerticalLayout();
 
-        votesGrid.getColumn("vote").setWidth(100);
-        votesGrid.getColumn("playerName").setMinimumWidthFromContent(true);
-        votesGrid.setWidthFull();
+        Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayerName(), new TextRenderer());
+        Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(v -> v.getVote(), new HtmlRenderer());
+        playerNameColumn.setWidthUndefined();
+        playerNameColumn.setCaption("Player");
+        playerNameColumn.setResizable(false);
+        voteValueColumn.setWidth(100);
+        voteValueColumn.setCaption("Vote");
+        voteValueColumn.setResizable(false);
+        voteValueColumn.setStyleGenerator(item -> "center-align");
+
+//        votesGrid.setWidthFull();
 
         GridLayout votingGrid = createVotingGrid();
         votingGrid.setWidthUndefined();
         votingGrid.setHeightUndefined();
 
+        this.issueView = createIssueView();
+        issueView.setWidthFull();
+        issueView.setHeightUndefined();
+
         initSessionDetailsDisplay();
-        votesLayout.addComponents(votesGrid, votingGrid);
+        votesLayout.addComponents(votesGrid, votingGrid, issueView);
+//        votesLayout.setExpandRatio(votesGrid, 0.25f);
+//        votesLayout.setExpandRatio(votingGrid, 0.1f);
+        votesLayout.setExpandRatio(issueView, 0.65f);
         votesLayout.setVisible(false);
         votesLayout.setSpacing(true);
         votesLayout.setWidthFull();
@@ -108,18 +152,26 @@ public class PokerUI extends UI implements Serializable, View {
         pokerLayout.addComponents(playerForm, sessionForm, votesLayout);
         sessionForm.setVisible(false);
 //        votesGrid.setVisible(false);
-        votesGrid.setColumns("playerName", "vote");
 
         initBgChecker();
 
         pokerLayout.setSizeFull();
         sessionDetailsLayout.setVisible(false);
         sessionDetailsLayout.setHeight("6em");
-        sessionDetailsLayout.setWidth("40em");
+        sessionDetailsLayout.setWidth("25em");
         votesLayout.setWidthFull();
         votesLayout.setHeightUndefined();
         wrapper.addComponents(sessionDetailsLayout, pokerLayout);
         this.setContent(wrapper);
+    }
+
+    private IssueView createIssueView() {
+        IssueView result = new IssueView(this, jiraService);
+        result.setWidthUndefined();
+        result.setHeightUndefined();
+//        result.setVisible(false);
+
+        return result;
     }
 
     private void initBgChecker() {
@@ -204,7 +256,6 @@ public class PokerUI extends UI implements Serializable, View {
 
         sessionDetailsLayout.setVisible(true);
         votesLayout.setVisible(true);
-
-//        PokerService.vote(session, player, "5");
+        issueView.setVisible(true);
     }
 }

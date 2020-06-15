@@ -1,9 +1,14 @@
 package com.alexmegremis.planningpoker;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
+import com.vaadin.spring.annotation.SpringComponent;
 
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@SpringComponent
 public class PokerService {
 
     // 1, Alex
@@ -16,10 +21,12 @@ public class PokerService {
         SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).build();
         sessions.add(result);
 
-        for(int i = 1; i < 11; i++) {
+        for (int i = 1; i < 11; i++) {
             PlayerDTO player = createPlayer("Session_" + sessionId + "_TestPlayer_" + i);
             result.addPlayer(player);
-            vote(result, player, "test");
+            int randomNum = ThreadLocalRandom.current().nextInt(0, PokerUI.nums.length);
+
+            vote(result, player, PokerUI.nums[randomNum]);
         }
 
         return result;
@@ -32,6 +39,20 @@ public class PokerService {
         return result;
     }
 
+    public static String getVoteResults(final SessionDTO session) {
+
+        Map<String, Long> collect = session.getVotes().stream().map(VoteDTO :: getPrivateVote).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        Optional<Long>    max     = collect.values().stream().max(Comparator.naturalOrder());
+        String            result  = "n/a";
+        if (max.isPresent()) {
+            result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry ::getKey).map(String :: valueOf).collect(Collectors.joining(","));
+//            result = collect.values().stream().filter(aLong -> aLong.equals(max.get())).map(String :: valueOf).collect(Collectors.joining(","));
+            result = result + " with " + max.get() + " votes";
+        }
+
+        return result;
+    }
+
     public static void removePlayer(final PlayerDTO player) {
         players.remove(player);
         sessions.forEach(session -> session.removePlayer(player));
@@ -39,9 +60,19 @@ public class PokerService {
 
     public static void vote(final SessionDTO session, final PlayerDTO player, final String vote) {
         session.vote(player, vote);
+        hideVotes(session);
     }
 
     public static Optional<SessionDTO> findSession(final String sessionId) {
         return sessions.stream().filter(s -> s.getId().equals(sessionId)).findFirst();
+    }
+
+    public static void revealVotes(final SessionDTO session) {
+        session.getVotes().forEach(VoteDTO :: revealVote);
+        session.updateLastModificationTimestamp();
+    }
+
+    public static void hideVotes(final SessionDTO session) {
+        session.getVotes().forEach(VoteDTO :: hideVote);
     }
 }
