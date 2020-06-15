@@ -21,7 +21,7 @@ public class PokerService {
 
     public static SessionDTO createSession(final String sessionName) {
         String     sessionId = String.valueOf((Math.round(Math.random() * ((999999 - 100000) + 1)) + 100000));
-        SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).build();
+        SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).build();
         sessions.add(result);
 
         for (int i = 1; i < 4; i++) {
@@ -68,6 +68,7 @@ public class PokerService {
     public static void vote(final SessionDTO session, final PlayerDTO player, final String vote) {
         session.voteInSession(player, vote);
         log.info(">>> {} voted {}", player.getName(), vote);
+        session.setVoteResult(getVoteResults(session));
         hideVotes(session);
     }
 
@@ -77,14 +78,19 @@ public class PokerService {
 
     public static void revealVotes(final SessionDTO session) {
         session.getVotes().forEach(VoteDTO :: revealVote);
+        session.setShowVotes(true);
         session.updateLastModificationTimestamp();
     }
 
     public static void hideVotes(final SessionDTO session) {
         session.getVotes().forEach(VoteDTO :: hideVote);
+        session.setShowVotes(false);
+        session.updateLastModificationTimestamp();
     }
 
     public static void resetVotes(final SessionDTO session) {
         session.getPlayers().forEach(p -> PokerService.vote(session, p, ""));
+        session.setShowVotes(false);
+        session.updateLastModificationTimestamp();
     }
 }

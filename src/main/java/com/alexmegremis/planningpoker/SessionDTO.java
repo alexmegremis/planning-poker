@@ -21,6 +21,9 @@ public class SessionDTO implements Serializable {
     @Getter
     @Setter
     private String voteResult;
+    @Getter
+    @Setter
+    private Boolean showVotes = false;
 
     @Getter
     private final List<PlayerDTO> players = new CopyOnWriteArrayList<>();

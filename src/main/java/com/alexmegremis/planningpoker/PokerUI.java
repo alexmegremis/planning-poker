@@ -75,7 +75,6 @@ public class PokerUI extends UI implements Serializable, View {
         result.setWidth("5em");
         result.addClickListener(event -> {
             PokerService.vote(session, player, caption);
-            this.votesResults.setVisible(false);
         });
         return result;
     }
@@ -95,8 +94,6 @@ public class PokerUI extends UI implements Serializable, View {
         result.addComponent(revealVotes, 0, 8, 1, 8);
         revealVotes.addClickListener(event -> {
             PokerService.revealVotes(session);
-            votesResults.setVisible(true);
-            votesResults.setValue(session.getVoteResult());
         });
 
         votesResults.setWidth("10em");
@@ -108,9 +105,8 @@ public class PokerUI extends UI implements Serializable, View {
         resetVotes.setWidth("10em");
         resetVotes.addClickListener(event -> {
             PokerService.resetVotes(session);
-            votesResults.setVisible(false);
             votesResults.setValue(session.getVoteResult());
-            populateVotes();
+            session.updateLastModificationTimestamp();
         });
         result.addComponent(getSpacer(), 0, 11, 1, 11);
         result.addComponent(resetVotes, 0, 12, 1, 12);
@@ -196,6 +192,11 @@ public class PokerUI extends UI implements Serializable, View {
                     if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
                         knownSessionTimestamp = latestSessionTimestamp;
                         populateVotes();
+                        this.votesResults.setValue(session.getVoteResult());
+                        this.votesResults.setValue(session.getVoteResult());
+                        this.votesResults.setVisible(session.getShowVotes());
+                        this.votesResults.setVisible(session.getShowVotes());
+                        log.info(">>> updated session {} for {}, session showVotes is {}, UI {} showVotes is {}", session.getId(), player.getName(), session.getShowVotes(), votesResults, votesResults.isVisible());
                     }
 
                     if (playerCount != session.getPlayers().size()) {
@@ -204,6 +205,7 @@ public class PokerUI extends UI implements Serializable, View {
                             this.labelPlayerCountValue.setValue(String.valueOf(playerCount));
                         });
                     }
+
 
                     try {
                         Thread.sleep(200l);
