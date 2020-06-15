@@ -81,16 +81,17 @@ public class PokerUI extends UI implements Serializable, View {
     }
 
     private GridLayout createVotingGrid() {
-        final GridLayout result = new GridLayout(2, 10);
+        final GridLayout result = new GridLayout(2, 15);
 
         for (int i = 0; i < nums.length; i++) {
             result.addComponent(getVoteButton(nums[i]));
         }
 
         result.addComponent(getSpacer(), 0, 6, 1, 7);
-        Button revealVotes = new Button("Show");
+
+
+        Button revealVotes = new Button("Show votes");
         revealVotes.setWidth("10em");
-        votesResults.setWidth("10em");
         result.addComponent(revealVotes, 0, 8, 1, 8);
         revealVotes.addClickListener(event -> {
             PokerService.revealVotes(session);
@@ -98,11 +99,22 @@ public class PokerUI extends UI implements Serializable, View {
             votesResults.setValue(session.getVoteResult());
         });
 
-        result.insertRow(9);
-        result.insertRow(9);
-        result.insertRow(9);
+        votesResults.setWidth("10em");
         result.addComponent(getSpacer(), 0, 9, 1, 9);
         result.addComponent(votesResults, 0, 10, 1, 10);
+
+
+        Button resetVotes = new Button("Reset votes");
+        resetVotes.setWidth("10em");
+        resetVotes.addClickListener(event -> {
+            PokerService.resetVotes(session);
+            votesResults.setVisible(false);
+            votesResults.setValue(session.getVoteResult());
+            populateVotes();
+        });
+        result.addComponent(getSpacer(), 0, 11, 1, 11);
+        result.addComponent(resetVotes, 0, 12, 1, 12);
+
         votesResults.setReadOnly(true);
         votesResults.setVisible(false);
 
@@ -167,6 +179,7 @@ public class PokerUI extends UI implements Serializable, View {
 
     private IssueView createIssueView() {
         IssueView result = new IssueView(this, jiraService);
+        result.setMargin(false);
         result.setWidthUndefined();
         result.setHeightUndefined();
 //        result.setVisible(false);

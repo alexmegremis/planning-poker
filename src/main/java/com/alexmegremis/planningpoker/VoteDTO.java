@@ -2,6 +2,7 @@ package com.alexmegremis.planningpoker;
 
 import com.vaadin.server.FontAwesome;
 import lombok.*;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 
@@ -33,5 +34,11 @@ public class VoteDTO implements Serializable {
 
     public void vote(final String vote) {
         privateVote = vote;
+        if(StringUtils.isEmpty(vote)) {
+            this.vote = vote;
+        } else {
+            this.vote = FontAwesome.EYE_SLASH.getHtml();;
+        }
+        hideVote();
     }
 }

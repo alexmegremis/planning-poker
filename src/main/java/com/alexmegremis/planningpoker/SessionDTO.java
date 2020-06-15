@@ -28,7 +28,7 @@ public class SessionDTO implements Serializable {
 
     public void addPlayer(final PlayerDTO player) {
         players.add(player);
-        vote(player, "");
+        PokerService.vote(this, player, "");
         updateLastModificationTimestamp();
     }
 
@@ -42,20 +42,17 @@ public class SessionDTO implements Serializable {
         updateLastModificationTimestamp();
     }
 
-    public void vote(final PlayerDTO player, final String vote) {
+    public void voteInSession(final PlayerDTO player, final String vote) {
         Optional<VoteDTO> existingVote = votes.stream().filter(aVote -> aVote.getPlayer().equals(player)).findFirst();
         if (existingVote.isPresent()) {
             existingVote.get().vote(vote);
         } else {
-            votes.add(VoteDTO.builder().session(this).player(player).privateVote(vote).vote("").build());
+            VoteDTO newVote = VoteDTO.builder().session(this).player(player).build();
+            newVote.vote(vote);
+            votes.add(newVote);
         }
         voteResult = PokerService.getVoteResults(this);
         updateLastModificationTimestamp();
-    }
-
-    public void resetVotes() {
-        votes.clear();
-        players.forEach(p -> vote(p, ""));
     }
 
     public void updateLastModificationTimestamp() {

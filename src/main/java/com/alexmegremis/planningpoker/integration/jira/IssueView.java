@@ -17,16 +17,17 @@ public class IssueView extends VerticalLayout {
         Button     buttonFindIssue = new Button("Find");
         FormLayout issueForm       = new FormLayout(inputIssueKey, buttonFindIssue);
 
+        issueForm.setMargin(false);
+
         TextArea issueSummary = new TextArea("Summary");
         issueSummary.setHeightUndefined();
+        issueSummary.setWidthFull();
         TextArea issueDescription = new TextArea("Description");
         issueDescription.setHeightUndefined();
-        issueDescription.setVisible(true);
         issueDescription.setWidthFull();
         issueDescription.setWordWrap(true);
         TextArea issueUAC = new TextArea("UAC");
         issueUAC.setHeightUndefined();
-        issueUAC.setVisible(false);
         issueUAC.setWidthFull();
         issueUAC.setWordWrap(true);
 
@@ -34,13 +35,13 @@ public class IssueView extends VerticalLayout {
             JiraIssueDTO issue = jiraService.getIssueByKey(inputIssueKey.getValue());
             issueSummary.setValue(issue.getSummary());
             issueDescription.setValue(issue.getDescription());
-            issueUAC.setValue(issue.getUAC());
             issueDescription.setSizeFull();
             issueDescription.setVisible(true);
+            issueUAC.setValue(issue.getUAC());
             issueUAC.setSizeFull();
             issueUAC.setVisible(true);
         });
 
-        addComponents(issueForm, issueSummary, issueSummary, issueDescription);
+        addComponents(issueForm, issueSummary, issueDescription, issueUAC);
     }
 }

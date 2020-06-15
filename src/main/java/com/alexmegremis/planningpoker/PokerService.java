@@ -1,6 +1,8 @@
 package com.alexmegremis.planningpoker;
 
 import com.vaadin.spring.annotation.SpringComponent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -8,6 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @SpringComponent
 public class PokerService {
 
@@ -41,15 +44,15 @@ public class PokerService {
 
     public static String getVoteResults(final SessionDTO session) {
 
-        Map<String, Long> collect = session.getVotes().stream().map(VoteDTO :: getPrivateVote).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        Map<String, Long> collect = session.getVotes().stream().filter(v -> !StringUtils.isEmpty(v.getPrivateVote())).map(VoteDTO :: getPrivateVote).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         Optional<Long>    max     = collect.values().stream().max(Comparator.naturalOrder());
         String            result  = "n/a";
         if (max.isPresent()) {
-            result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry ::getKey).map(String :: valueOf).collect(Collectors.joining(","));
-//            result = collect.values().stream().filter(aLong -> aLong.equals(max.get())).map(String :: valueOf).collect(Collectors.joining(","));
+            result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry :: getKey).map(String :: valueOf).collect(Collectors.joining(","));
             result = result + " with " + max.get() + " votes";
         }
 
+        log.info(">>> Vote result : {}", result);
         return result;
     }
 
@@ -59,7 +62,7 @@ public class PokerService {
     }
 
     public static void vote(final SessionDTO session, final PlayerDTO player, final String vote) {
-        session.vote(player, vote);
+        session.voteInSession(player, vote);
         hideVotes(session);
     }
 
@@ -74,5 +77,10 @@ public class PokerService {
 
     public static void hideVotes(final SessionDTO session) {
         session.getVotes().forEach(VoteDTO :: hideVote);
+    }
+
+    public static void resetVotes(final SessionDTO session) {
+        session.getPlayers().forEach(p -> PokerService.vote(session, p, ""));
+        session.setVoteResult("n/a");
     }
 }
