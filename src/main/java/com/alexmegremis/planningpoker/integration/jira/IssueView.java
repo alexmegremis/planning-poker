@@ -19,25 +19,31 @@ public class IssueView extends VerticalLayout {
 
         issueForm.setMargin(false);
 
-        TextArea issueSummary = new TextArea("Summary");
-        issueSummary.setHeightUndefined();
+        TextField issueSummary = new TextField("Summary");
+//        issueSummary.setHeightUndefined();
         issueSummary.setWidthFull();
+        issueSummary.setReadOnly(true);
         TextArea issueDescription = new TextArea("Description");
         issueDescription.setHeightUndefined();
         issueDescription.setWidthFull();
         issueDescription.setWordWrap(true);
+        issueDescription.setReadOnly(true);
         TextArea issueUAC = new TextArea("UAC");
         issueUAC.setHeightUndefined();
         issueUAC.setWidthFull();
         issueUAC.setWordWrap(true);
+        issueUAC.setReadOnly(true);
+
+        issueDescription.addStyleName("activity-log");
 
         buttonFindIssue.addClickListener(event -> {
+            buttonFindIssue.setComponentError(null);
             JiraIssueDTO issue = jiraService.getIssueByKey(inputIssueKey.getValue());
-            issueSummary.setValue(issue.getSummary());
-            issueDescription.setValue(issue.getDescription());
+            issueSummary.setValue(issue.getFields().getSummary());
+            issueDescription.setValue(issue.getFields().getDescription());
             issueDescription.setSizeFull();
             issueDescription.setVisible(true);
-            issueUAC.setValue(issue.getUAC());
+//            issueUAC.setValue(issue.getUAC());
             issueUAC.setSizeFull();
             issueUAC.setVisible(true);
         });

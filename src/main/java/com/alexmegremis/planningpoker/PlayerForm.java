@@ -1,5 +1,6 @@
 package com.alexmegremis.planningpoker;
 
+import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
 import org.springframework.util.StringUtils;
 
@@ -19,11 +20,12 @@ public class PlayerForm extends FormLayout {
 
     private void save() {
         if(!StringUtils.isEmpty(playerName.getValue())) {
-            PlayerDTO player = PokerService.createPlayer(playerName.getValue());
+            playerName.setComponentError(null);
+            PlayerDTO player = PokerService.createPlayer(playerName.getValue().trim());
             playerName.clear();
             pokerUI.setPlayer(player);
         } else {
-            Notification.show("Name cannot be blank", Notification.Type.ERROR_MESSAGE);
+            playerName.setComponentError(new UserError("Required"));
         }
     }
 }
