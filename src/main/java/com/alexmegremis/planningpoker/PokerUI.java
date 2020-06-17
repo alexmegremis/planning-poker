@@ -17,8 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static com.vaadin.ui.Grid.Column;
 
@@ -29,6 +28,11 @@ import static com.vaadin.ui.Grid.Column;
 @SpringUI
 @SpringView(name = "Planning Poker")
 public class PokerUI extends UI implements Serializable, View {
+
+    private static final Set<PokerUI> allUIs = new HashSet<>();
+    public static final void updateAll() {
+        allUIs.forEach(PokerUI::doRefresh);
+    }
 
     @Autowired
     private JiraService jiraService;
@@ -124,6 +128,8 @@ public class PokerUI extends UI implements Serializable, View {
     @Override
     protected void init(final VaadinRequest vaadinRequest) {
 
+        PokerUI.allUIs.add(this);
+
         final VerticalLayout wrapper = new VerticalLayout();
 
         Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayerName(), new TextRenderer());
@@ -183,6 +189,28 @@ public class PokerUI extends UI implements Serializable, View {
         return result;
     }
 
+    public void doRefresh() {
+        if (session != null) {
+            Long latestSessionTimestamp = session.getLastModificationTimestamp();
+            if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
+                knownSessionTimestamp = latestSessionTimestamp;
+                populateVotes();
+                this.access(() -> {
+                    this.votesResults.setValue(session.getVoteResult());
+                    this.votesResults.setVisible(session.getShowVotes());
+                });
+                log.info(">>> updated session {} for {}, session showVotes is {}, UI {} showVotes is {}", session.getId(), player.getName(), session.getShowVotes(), votesResults, votesResults.isVisible());
+            }
+
+            if (playerCount != session.getPlayers().size()) {
+                playerCount = session.getPlayers().size();
+                this.access(() -> {
+                    this.labelPlayerCountValue.setValue(String.valueOf(playerCount));
+                });
+            }
+        }
+    }
+
     private void initBgChecker() {
         bgChecker = () -> {
             boolean doContinue = true;
@@ -238,6 +266,8 @@ public class PokerUI extends UI implements Serializable, View {
         log.info(">>> player {} has detached", player.getName());
         player = null;
         populateVotes();
+        PokerUI.allUIs.remove(this);
+        PokerUI.updateAll();
         super.detach();
     }
 
