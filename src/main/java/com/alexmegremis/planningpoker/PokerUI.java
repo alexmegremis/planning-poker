@@ -167,7 +167,7 @@ public class PokerUI extends UI implements Serializable, View {
         sessionForm.setVisible(false);
 //        votesGrid.setVisible(false);
 
-        initBgChecker();
+//        initBgChecker();
 
         pokerLayout.setSizeFull();
         sessionDetailsLayout.setVisible(false);
@@ -211,43 +211,43 @@ public class PokerUI extends UI implements Serializable, View {
         }
     }
 
-    private void initBgChecker() {
-        bgChecker = () -> {
-            boolean doContinue = true;
-            do {
-                if (session != null) {
-                    Long latestSessionTimestamp = session.getLastModificationTimestamp();
-                    if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
-                        knownSessionTimestamp = latestSessionTimestamp;
-                        populateVotes();
-                        this.access(() -> {
-                            this.votesResults.setValue(session.getVoteResult());
-                            this.votesResults.setVisible(session.getShowVotes());
-                        });
-                        log.info(">>> updated session {} for {}, session showVotes is {}, UI {} showVotes is {}", session.getId(), player.getName(), session.getShowVotes(), votesResults, votesResults.isVisible());
-                    }
-
-                    if (playerCount != session.getPlayers().size()) {
-                        playerCount = session.getPlayers().size();
-                        this.access(() -> {
-                            this.labelPlayerCountValue.setValue(String.valueOf(playerCount));
-                        });
-                    }
-
-
-                    try {
-                        Thread.sleep(200l);
-                    } catch (InterruptedException e) {
-                        doContinue = false;
-                        log.info(">>> end checking for {}, for {}", session.getId(), player.getName());
-                    }
-                }
-            } while (doContinue);
-        };
-
-        executor.initialize();
-        executor.execute(bgChecker);
-    }
+//    private void initBgChecker() {
+//        bgChecker = () -> {
+//            boolean doContinue = true;
+//            do {
+//                if (session != null) {
+//                    Long latestSessionTimestamp = session.getLastModificationTimestamp();
+//                    if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
+//                        knownSessionTimestamp = latestSessionTimestamp;
+//                        populateVotes();
+//                        this.access(() -> {
+//                            this.votesResults.setValue(session.getVoteResult());
+//                            this.votesResults.setVisible(session.getShowVotes());
+//                        });
+//                        log.info(">>> updated session {} for {}, session showVotes is {}, UI {} showVotes is {}", session.getId(), player.getName(), session.getShowVotes(), votesResults, votesResults.isVisible());
+//                    }
+//
+//                    if (playerCount != session.getPlayers().size()) {
+//                        playerCount = session.getPlayers().size();
+//                        this.access(() -> {
+//                            this.labelPlayerCountValue.setValue(String.valueOf(playerCount));
+//                        });
+//                    }
+//
+//
+//                    try {
+//                        Thread.sleep(200l);
+//                    } catch (InterruptedException e) {
+//                        doContinue = false;
+//                        log.info(">>> end checking for {}, for {}", session.getId(), player.getName());
+//                    }
+//                }
+//            } while (doContinue);
+//        };
+//
+//        executor.initialize();
+//        executor.execute(bgChecker);
+//    }
 
     private void initSessionDetailsDisplay() {
         sessionDetailsLayout.addComponents(labelSessionId, getSpacer(), labelSessionIdValue, getSpacer(), labelPlayerCount, getSpacer(), labelPlayerCountValue, labelSessionName,

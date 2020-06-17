@@ -64,6 +64,7 @@ public class SessionDTO implements Serializable {
 
     public void updateLastModificationTimestamp() {
         lastModificationTimestamp = Instant.now().toEpochMilli();
+        PokerUI.updateAll();
     }
 
     @Override

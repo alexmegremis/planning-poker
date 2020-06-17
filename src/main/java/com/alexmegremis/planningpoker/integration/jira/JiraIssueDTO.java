@@ -1,5 +1,6 @@
 package com.alexmegremis.planningpoker.integration.jira;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.Calendar;
@@ -23,7 +24,11 @@ public class JiraIssueDTO {
         private Map<String, String> issueType;
         private String              description;
         private String              summary;
+        @JsonProperty ("customfield_XXXX")
+        private String              UAC;
         private Calendar            created;
+        private Person              creator;
+        private Person              assignee;
 
         @Data
         @AllArgsConstructor
