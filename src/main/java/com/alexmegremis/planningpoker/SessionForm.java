@@ -13,9 +13,11 @@ public class SessionForm extends FormLayout {
     private SessionDTO session;
 
     private PokerUI pokerUI;
+    private PokerService pokerService;
 
-    public SessionForm(final PokerUI pokerUI) {
+    public SessionForm(final PokerUI pokerUI, final PokerService pokerService) {
         this.pokerUI = pokerUI;
+        this.pokerService = pokerService;
         setSizeUndefined();
         addComponents(sessionId, findSessionButton);
         addComponents(sessionName, createSessionButton);
@@ -25,9 +27,9 @@ public class SessionForm extends FormLayout {
     }
 
     private void save() {
-        SessionDTO session = PokerService.createSession(sessionName.getValue().trim());
-        sessionName.clear();
+        SessionDTO session = pokerService.createSession(sessionName.getValue().trim());
         pokerUI.setSession(session);
+        sessionName.clear();
     }
 
     private void find() {

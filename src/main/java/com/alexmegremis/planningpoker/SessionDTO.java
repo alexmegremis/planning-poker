@@ -1,5 +1,6 @@
 package com.alexmegremis.planningpoker;
 
+import com.alexmegremis.planningpoker.integration.jira.JiraIssueDTO;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +25,10 @@ public class SessionDTO implements Serializable {
     @Getter
     @Setter
     private Boolean showVotes = false;
+    @Getter
+    private JiraIssueDTO jiraIssue;
+    @Getter
+    private PokerUI pokerUI;
 
     @Getter
     private final List<PlayerDTO> players = new CopyOnWriteArrayList<>();
@@ -62,9 +67,19 @@ public class SessionDTO implements Serializable {
         updateLastModificationTimestamp();
     }
 
+    public void setJiraIssue(final JiraIssueDTO jiraIssue) {
+        this.jiraIssue = jiraIssue;
+        updateLastModificationTimestamp();
+    }
+
     public void updateLastModificationTimestamp() {
         lastModificationTimestamp = Instant.now().toEpochMilli();
         PokerUI.updateAll();
+    }
+
+    public void setPokerUI(final PokerUI pokerUI) {
+        this.pokerUI = pokerUI;
+        this.pokerUI.setSession(this);
     }
 
     @Override

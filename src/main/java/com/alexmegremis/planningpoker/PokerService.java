@@ -1,7 +1,12 @@
 package com.alexmegremis.planningpoker;
 
+import com.alexmegremis.planningpoker.integration.jira.JiraIssueDTO;
+import com.alexmegremis.planningpoker.integration.jira.JiraService;
 import com.vaadin.spring.annotation.SpringComponent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -12,14 +17,16 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @SpringComponent
+@Scope (value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class PokerService {
 
-    // 1, Alex
+    @Autowired
+    private JiraService jiraService;
+
     private static final List<PlayerDTO>  players  = new CopyOnWriteArrayList<>();
-    // 1, Sprint 12
     private static final List<SessionDTO> sessions = new CopyOnWriteArrayList<>();
 
-    public static SessionDTO createSession(final String sessionName) {
+    public SessionDTO createSession(final String sessionName) {
         String     sessionId = String.valueOf((Math.round(Math.random() * ((999999 - 100000) + 1)) + 100000));
         SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).build();
         sessions.add(result);
@@ -35,7 +42,7 @@ public class PokerService {
         return result;
     }
 
-    public static PlayerDTO createPlayer(final String playerName) {
+    public PlayerDTO createPlayer(final String playerName) {
         String    playerId = String.valueOf((Math.round(Math.random() * ((999999 - 100000) + 1)) + 100000));
         PlayerDTO result   = new PlayerDTO(playerId, playerName);
         players.add(result);
@@ -49,8 +56,8 @@ public class PokerService {
                                            .filter(v -> ! StringUtils.isEmpty(v.getPrivateVote()))
                                            .map(VoteDTO :: getPrivateVote)
                                            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        Optional<Long>    max     = collect.values().stream().max(Comparator.naturalOrder());
-        String            result  = "n/a";
+        Optional<Long> max    = collect.values().stream().max(Comparator.naturalOrder());
+        String         result = "n/a";
         if (max.isPresent()) {
             result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry :: getKey).map(String :: valueOf).collect(Collectors.joining(","));
             result = result + " with " + max.get() + " votes";
@@ -91,6 +98,15 @@ public class PokerService {
     public static void resetVotes(final SessionDTO session) {
         session.getPlayers().forEach(p -> PokerService.vote(session, p, ""));
         session.setShowVotes(false);
+        session.updateLastModificationTimestamp();
+    }
+
+    public void findJiraIssue(final SessionDTO session, final String issueKey) {
+        jiraService.getIssueByKey(this, session, issueKey);
+    }
+
+    public void findJiraIssueResponse(final JiraIssueDTO issue, final SessionDTO session) {
+        session.setJiraIssue(issue);
         session.updateLastModificationTimestamp();
     }
 }

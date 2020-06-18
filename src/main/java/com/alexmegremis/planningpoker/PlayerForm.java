@@ -5,23 +5,25 @@ import com.vaadin.ui.*;
 import org.springframework.util.StringUtils;
 
 public class PlayerForm extends FormLayout {
-    private TextField playerName = new TextField("Player Name");
-    private Button playerCreateButton = new Button("Create");
-    private PlayerDTO player;
 
-    private PokerUI pokerUI;
+    private TextField playerName         = new TextField("Player Name");
+    private Button    playerCreateButton = new Button("Create");
 
-    public PlayerForm(final PokerUI pokerUI) {
+    private PokerUI      pokerUI;
+    private PokerService pokerService;
+
+    public PlayerForm(final PokerUI pokerUI, final PokerService pokerService) {
         this.pokerUI = pokerUI;
+        this.pokerService = pokerService;
         setSizeUndefined();
         addComponents(playerName, playerCreateButton);
         playerCreateButton.addClickListener(e -> this.save());
     }
 
     private void save() {
-        if(!StringUtils.isEmpty(playerName.getValue())) {
+        if (! StringUtils.isEmpty(playerName.getValue())) {
             playerName.setComponentError(null);
-            PlayerDTO player = PokerService.createPlayer(playerName.getValue().trim());
+            PlayerDTO player = pokerService.createPlayer(playerName.getValue().trim());
             playerName.clear();
             pokerUI.setPlayer(player);
         } else {
