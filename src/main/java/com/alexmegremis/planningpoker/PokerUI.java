@@ -4,6 +4,7 @@ import com.alexmegremis.planningpoker.integration.jira.IssueView;
 import com.alexmegremis.planningpoker.integration.jira.JiraService;
 import com.vaadin.annotations.*;
 import com.vaadin.navigator.View;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.communication.PushMode;
 import com.vaadin.shared.ui.ContentMode;
@@ -62,7 +63,7 @@ public class PokerUI extends UI implements Serializable, View {
     private final Label            labelPlayerCountValue = new Label();
     private final Label            labelPlayerName       = new Label("Your Name");
     private final Label            labelPlayerNameValue  = new Label();
-    private final GridLayout       sessionDetailsLayout  = new GridLayout(7, 2);
+    private final GridLayout       sessionDetailsLayout  = new GridLayout(10, 2);
     private final CssLayout        pokerLayout           = new CssLayout();
     private final HorizontalLayout votesLayout           = new HorizontalLayout();
 
@@ -218,8 +219,16 @@ public class PokerUI extends UI implements Serializable, View {
     }
 
     private void initSessionDetailsDisplay() {
-        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(), labelSessionIdValue, getSpacer(), labelPlayerCount, getSpacer(), labelPlayerCountValue, labelSessionName,
-                                           getSpacer(), labelSessionNameValue, getSpacer(), labelPlayerName, getSpacer(), labelPlayerNameValue);
+
+        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(),
+                                           labelSessionIdValue, getSpacer(),
+                                           labelPlayerCount, getSpacer(),
+                                           labelPlayerCountValue,
+
+                                           labelSessionName, getSpacer(),
+                                           labelSessionNameValue, getSpacer(),
+                                           labelPlayerName, getSpacer(),
+                                           labelPlayerNameValue);
 
         labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
         labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);

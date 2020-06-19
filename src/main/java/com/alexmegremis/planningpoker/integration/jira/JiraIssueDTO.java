@@ -42,6 +42,7 @@ public class JiraIssueDTO {
         public class Person {
 
             private String name;
+            private String displayName;
             private String key;
             private String emailAddress;
         }

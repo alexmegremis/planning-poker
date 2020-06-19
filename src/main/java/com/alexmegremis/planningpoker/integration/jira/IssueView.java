@@ -2,6 +2,7 @@ package com.alexmegremis.planningpoker.integration.jira;
 
 import com.alexmegremis.planningpoker.PokerService;
 import com.alexmegremis.planningpoker.SessionDTO;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import lombok.Getter;
 import org.springframework.util.Assert;
@@ -43,6 +44,8 @@ public class IssueView extends VerticalLayout {
         issueCreated.setReadOnly(true);
 
         issueForm.setMargin(false);
+        issueForm.setSpacing(true);
+        issueForm.setDescription("Find Issue", ContentMode.TEXT);
 
         issueSummary.setWidthFull();
 
@@ -98,8 +101,8 @@ public class IssueView extends VerticalLayout {
                     setIfNotNull(issueFields.getUAC(), issueUAC :: setValue);
                     setIfNotNull(issueFields.getSummary(), issueSummary :: setValue);
 
-                    setPersonIfNotNull(issueFields.getAssignee(), issueAssignee :: setValue);
-                    setPersonIfNotNull(issueFields.getCreator(), issueCreator :: setValue);
+                    setPersonIfNotNull(issueFields.getAssignee(), issueAssignee);
+                    setPersonIfNotNull(issueFields.getCreator(), issueCreator);
 
                     if (issueFields.getCreated() != null) {
                         issueCreated.setValue(LocalDateTime.ofInstant(issueFields.getCreated().toInstant(), issueFields.getCreated().getTimeZone().toZoneId()));
@@ -109,9 +112,10 @@ public class IssueView extends VerticalLayout {
         }
     }
 
-    private void setPersonIfNotNull(JiraIssueDTO.JiraIssueFieldsDTO.Person person, Consumer<String> consumer) {
+    private void setPersonIfNotNull(JiraIssueDTO.JiraIssueFieldsDTO.Person person, AbstractTextField displayField) {
         if (person != null) {
-            setIfNotNull(person.getName(), consumer);
+            setIfNotNull(person.getDisplayName(), displayField::setValue);
+            setIfNotNull(person.getName(), displayField::setDescription);
         }
     }
 
