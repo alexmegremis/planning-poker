@@ -4,7 +4,7 @@ import com.alexmegremis.planningpoker.integration.jira.IssueView;
 import com.alexmegremis.planningpoker.integration.jira.JiraService;
 import com.vaadin.annotations.*;
 import com.vaadin.navigator.View;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.communication.PushMode;
 import com.vaadin.shared.ui.ContentMode;
@@ -71,6 +71,11 @@ public class PokerUI extends UI implements Serializable, View {
 
     public static final String[] nums = new String[] {"0", "0.5", "1", "2", "3", "5", "8", "13", "20", "40", "100", "?"};
 
+    @Override
+    public void enter(final ViewChangeEvent event) {
+        event.getParameters().trim();
+    }
+
     private Label getSpacer() {
         final Label spacer = new Label("&nbsp;", ContentMode.HTML);
         spacer.setWidth("1em");
@@ -131,7 +136,7 @@ public class PokerUI extends UI implements Serializable, View {
 
         PokerUI.allUIs.add(this);
 
-        this.sessionForm = new SessionForm(this, pokerService);
+        this.sessionForm = new SessionForm(this, pokerService, sess);
         this.playerForm = new PlayerForm(this, pokerService);
 
         final VerticalLayout wrapper = new VerticalLayout();
@@ -220,15 +225,9 @@ public class PokerUI extends UI implements Serializable, View {
 
     private void initSessionDetailsDisplay() {
 
-        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(),
-                                           labelSessionIdValue, getSpacer(),
-                                           labelPlayerCount, getSpacer(),
-                                           labelPlayerCountValue,
+        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(), labelSessionIdValue, getSpacer(), labelPlayerCount, getSpacer(), labelPlayerCountValue,
 
-                                           labelSessionName, getSpacer(),
-                                           labelSessionNameValue, getSpacer(),
-                                           labelPlayerName, getSpacer(),
-                                           labelPlayerNameValue);
+                                           labelSessionName, getSpacer(), labelSessionNameValue, getSpacer(), labelPlayerName, getSpacer(), labelPlayerNameValue);
 
         labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
         labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);
@@ -261,7 +260,9 @@ public class PokerUI extends UI implements Serializable, View {
 
     public void setPlayer(final PlayerDTO player) {
         playerForm.setVisible(false);
-        sessionForm.setVisible(true);
+        if(this.session == null) {
+            sessionForm.setVisible(true);
+        }
         this.player = player;
         Notification.show("Player created");
         this.labelPlayerNameValue.setValue(player.getName());

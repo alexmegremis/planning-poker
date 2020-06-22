@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 @Builder
-public class SessionDTO implements Serializable {
+public class SessionDTO implements Identifiable, Serializable {
 
     @Getter
     private String id;

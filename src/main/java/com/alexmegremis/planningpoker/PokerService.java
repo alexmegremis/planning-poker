@@ -27,7 +27,7 @@ public class PokerService {
     private static final List<SessionDTO> sessions = new CopyOnWriteArrayList<>();
 
     public SessionDTO createSession(final String sessionName) {
-        String     sessionId = String.valueOf((Math.round(Math.random() * ((999999 - 100000) + 1)) + 100000));
+        String     sessionId = String.valueOf(getUniqueId(new ArrayList<>(sessions)));
         SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).build();
         sessions.add(result);
 
@@ -42,8 +42,23 @@ public class PokerService {
         return result;
     }
 
+    public static String getUniqueId(final Collection<Identifiable> existing) {
+
+        String newId;
+
+        do {
+            newId = String.valueOf(Math.toIntExact(Math.round(Math.random() * ((999999 - 100000) + 1)) + 100000));
+        } while (exists(newId, existing));
+
+        return newId;
+    }
+
+    public static boolean exists(final String id, final Collection<Identifiable> existing) {
+        return existing.stream().anyMatch(i -> i.getId().equals(id));
+    }
+
     public PlayerDTO createPlayer(final String playerName) {
-        String    playerId = String.valueOf((Math.round(Math.random() * ((999999 - 100000) + 1)) + 100000));
+        String    playerId = String.valueOf(getUniqueId(new ArrayList<>(players)));
         PlayerDTO result   = new PlayerDTO(playerId, playerName);
         players.add(result);
         return result;

@@ -8,7 +8,7 @@ import java.util.Objects;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlayerDTO implements Serializable {
+public class PlayerDTO implements Identifiable, Serializable {
     private String id;
     private String name;
 
