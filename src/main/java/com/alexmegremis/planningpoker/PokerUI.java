@@ -5,7 +5,9 @@ import com.alexmegremis.planningpoker.integration.jira.JiraService;
 import com.vaadin.annotations.*;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.shared.communication.PushMode;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.spring.annotation.SpringUI;
@@ -15,7 +17,6 @@ import com.vaadin.ui.renderers.HtmlRenderer;
 import com.vaadin.ui.renderers.TextRenderer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.Serializable;
 import java.util.*;
@@ -41,6 +42,7 @@ public class PokerUI extends UI implements Serializable, View {
         allUIs.forEach(PokerUI :: doRefresh);
     }
 
+    private Boolean     detached = false;
     private PlayerForm  playerForm;
     private SessionForm sessionForm;
 
@@ -53,8 +55,6 @@ public class PokerUI extends UI implements Serializable, View {
     private final List<VoteDTO> votes     = new ArrayList<>();
     private final Grid<VoteDTO> votesGrid = new Grid<>();
 
-    private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-
     private final Label            labelSessionId        = new Label("Session ID");
     private final Label            labelSessionIdValue   = new Label();
     private final Label            labelSessionName      = new Label("Session Name");
@@ -63,8 +63,8 @@ public class PokerUI extends UI implements Serializable, View {
     private final Label            labelPlayerCountValue = new Label();
     private final Label            labelPlayerName       = new Label("Your Name");
     private final Label            labelPlayerNameValue  = new Label();
-    private final GridLayout       sessionDetailsLayout  = new GridLayout(10, 2);
-    private final CssLayout        pokerLayout           = new CssLayout();
+    private final GridLayout       sessionDetailsLayout  = new GridLayout(7, 2);
+    private final VerticalLayout   pokerLayout           = new VerticalLayout();
     private final HorizontalLayout votesLayout           = new HorizontalLayout();
 
     private Integer playerCount = 0;
@@ -73,7 +73,11 @@ public class PokerUI extends UI implements Serializable, View {
 
     @Override
     public void enter(final ViewChangeEvent event) {
-        event.getParameters().trim();
+        String               param   = event.getParameters().trim();
+        Optional<SessionDTO> session = PokerService.findSession(param);
+        if (session.isPresent()) {
+            this.setSession(session.get());
+        }
     }
 
     private Label getSpacer() {
@@ -86,7 +90,10 @@ public class PokerUI extends UI implements Serializable, View {
         Button result = new Button(caption);
         result.setWidth("5em");
         result.addClickListener(event -> {
-            PokerService.vote(session, player, caption);
+            boolean didVote = PokerService.vote(session, player, caption);
+            if (! didVote) {
+                this.detach();
+            }
         });
         return result;
     }
@@ -114,21 +121,15 @@ public class PokerUI extends UI implements Serializable, View {
         Button resetVotes = new Button("Reset votes");
         resetVotes.setWidth("10em");
         resetVotes.addClickListener(event -> {
-            PokerService.resetVotes(session);
-            votesResults.setValue(session.getVoteResult());
-            session.updateLastModificationTimestamp();
+            ConfirmationDialogue confirm = new ConfirmationDialogue(this, session, PokerService :: resetVotes);
+            UI.getCurrent().addWindow(confirm);
         });
         result.addComponent(getSpacer(), 0, 11, 1, 11);
         result.addComponent(resetVotes, 0, 12, 1, 12);
 
         votesResults.setReadOnly(true);
-        votesResults.setVisible(false);
 
         return result;
-    }
-
-    private CssLayout createIssueLayout() {
-        return null;
     }
 
     @Override
@@ -136,10 +137,35 @@ public class PokerUI extends UI implements Serializable, View {
 
         PokerUI.allUIs.add(this);
 
-        this.sessionForm = new SessionForm(this, pokerService, sess);
-        this.playerForm = new PlayerForm(this, pokerService);
+        initUIs();
+        processParams();
+        setState();
 
-        final VerticalLayout wrapper = new VerticalLayout();
+        doRefresh();
+    }
+
+    private void setState() {
+
+        if (! detached) {
+            playerForm.setVisible(player == null);
+            sessionForm.setVisible(player != null && session == null);
+            votesLayout.setVisible(player != null && session != null);
+            issueView.setVisible(votesLayout.isVisible());
+            sessionDetailsLayout.setVisible(votesLayout.isVisible());
+        }
+    }
+
+    private void processParams() {
+        String               uriSessionId = Page.getCurrent().getUriFragment();
+        Optional<SessionDTO> session      = PokerService.findSession(uriSessionId);
+        if (session.isPresent()) {
+            setSession(session.get());
+        }
+    }
+
+    private void initUIs() {
+        this.sessionForm = new SessionForm(this, pokerService, session);
+        this.playerForm = new PlayerForm(this, pokerService);
 
         Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayerName(), new TextRenderer());
         Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(v -> v.getVote(), new HtmlRenderer());
@@ -149,9 +175,15 @@ public class PokerUI extends UI implements Serializable, View {
         voteValueColumn.setWidth(100);
         voteValueColumn.setCaption("Vote");
         voteValueColumn.setResizable(false);
-        voteValueColumn.setStyleGenerator(item -> "center-align");
 
-//        votesGrid.setWidthFull();
+        votesGrid.addItemClickListener(e -> {
+            MouseEventDetails click = e.getMouseEventDetails();
+            if (click.isAltKey() && click.isShiftKey()) {
+                ConfirmationDialogue confirm = new ConfirmationDialogue(this, e.getItem().getPlayer(), PokerService :: removePlayer);
+                UI.getCurrent().addWindow(confirm);
+                //                PokerService.removePlayer(e.getItem().getPlayer());
+            }
+        });
 
         GridLayout votingGrid = createVotingGrid();
         votingGrid.setWidthUndefined();
@@ -163,29 +195,19 @@ public class PokerUI extends UI implements Serializable, View {
 
         initSessionDetailsDisplay();
         votesLayout.addComponents(votesGrid, votingGrid, issueView);
-//        votesLayout.setExpandRatio(votesGrid, 0.25f);
-//        votesLayout.setExpandRatio(votingGrid, 0.1f);
         votesLayout.setExpandRatio(issueView, 0.65f);
-        votesLayout.setVisible(false);
         votesLayout.setSpacing(true);
         votesLayout.setWidthFull();
         votesLayout.setHeightUndefined();
-        sessionDetailsLayout.setVisible(false);
 
-        pokerLayout.addComponents(playerForm, sessionForm, votesLayout);
-        sessionForm.setVisible(false);
-//        votesGrid.setVisible(false);
-
-//        initBgChecker();
-
-        pokerLayout.setSizeFull();
-        sessionDetailsLayout.setVisible(false);
         sessionDetailsLayout.setHeight("6em");
         sessionDetailsLayout.setWidth("25em");
         votesLayout.setWidthFull();
         votesLayout.setHeightUndefined();
-        wrapper.addComponents(sessionDetailsLayout, pokerLayout);
-        this.setContent(wrapper);
+
+        pokerLayout.addComponents(playerForm, sessionForm, sessionDetailsLayout, votesLayout);
+
+        this.setContent(pokerLayout);
     }
 
     private IssueView createIssueView() {
@@ -193,20 +215,18 @@ public class PokerUI extends UI implements Serializable, View {
         result.setMargin(false);
         result.setWidthUndefined();
         result.setHeightUndefined();
-//        result.setVisible(false);
 
         return result;
     }
 
     public void doRefresh() {
-        if (session != null) {
+        if (! detached && player != null && session != null) {
             Long latestSessionTimestamp = session.getLastModificationTimestamp();
             if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
                 knownSessionTimestamp = latestSessionTimestamp;
                 populateVotes();
                 this.access(() -> {
-                    this.votesResults.setValue(session.getVoteResult());
-                    this.votesResults.setVisible(session.getShowVotes());
+                    this.votesResults.setValue(PokerService.getVoteResults(session));
                 });
                 log.info(">>> updated session {} for {}, session showVotes is {}, UI {} showVotes is {}", session.getId(), player.getName(), session.getShowVotes(), votesResults,
                          votesResults.isVisible());
@@ -237,13 +257,19 @@ public class PokerUI extends UI implements Serializable, View {
 
     @Override
     public void detach() {
+        this.detached = true;
         PokerService.removePlayer(player);
-        executor.shutdown();
         log.info(">>> player {} has detached", player.getName());
         player = null;
-        populateVotes();
         PokerUI.allUIs.remove(this);
         PokerUI.updateAll();
+
+        playerForm.setVisible(false);
+        sessionForm.setVisible(false);
+        votesLayout.setVisible(false);
+        issueView.setVisible(false);
+        sessionDetailsLayout.setVisible(true);
+
         super.detach();
     }
 
@@ -259,27 +285,35 @@ public class PokerUI extends UI implements Serializable, View {
     }
 
     public void setPlayer(final PlayerDTO player) {
-        playerForm.setVisible(false);
-        if(this.session == null) {
-            sessionForm.setVisible(true);
-        }
         this.player = player;
+        setState();
         Notification.show("Player created");
         this.labelPlayerNameValue.setValue(player.getName());
+
+        if (this.session != null) {
+            session.addPlayer(player);
+            readyToUse();
+        }
+
+        doRefresh();
     }
 
     public void setSession(final SessionDTO session) {
-        sessionForm.setVisible(false);
         this.session = session;
+        Page.getCurrent().setUriFragment(session.getId());
+        setState();
         this.knownSessionTimestamp = session.getLastModificationTimestamp();
-        session.addPlayer(player);
+        if (player != null) {
+            session.addPlayer(player);
+            readyToUse();
+        }
 
+        doRefresh();
+    }
+
+    private void readyToUse() {
         labelSessionIdValue.setValue(session.getId());
         labelSessionNameValue.setValue(session.getName());
-
-        sessionDetailsLayout.setVisible(true);
-        votesLayout.setVisible(true);
         issueView.init(pokerService, jiraService, session);
-        issueView.setVisible(true);
     }
 }

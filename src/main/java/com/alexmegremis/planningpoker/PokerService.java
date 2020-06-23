@@ -11,7 +11,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,13 +30,13 @@ public class PokerService {
         SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).build();
         sessions.add(result);
 
-        for (int i = 1; i < 4; i++) {
-            PlayerDTO player = createPlayer("Session_" + sessionId + "_TestPlayer_" + i);
-            result.addPlayer(player);
-            int randomNum = ThreadLocalRandom.current().nextInt(0, PokerUI.nums.length);
-
-            vote(result, player, PokerUI.nums[randomNum]);
-        }
+//        for (int i = 1; i < 4; i++) {
+//            PlayerDTO player = createPlayer("Session_" + sessionId + "_TestPlayer_" + i);
+//            result.addPlayer(player);
+//            int randomNum = ThreadLocalRandom.current().nextInt(0, PokerUI.nums.length);
+//
+//            vote(result, player, PokerUI.nums[randomNum]);
+//        }
 
         return result;
     }
@@ -66,16 +65,19 @@ public class PokerService {
 
     public static String getVoteResults(final SessionDTO session) {
 
-        Map<String, Long> collect = session.getVotes()
-                                           .stream()
-                                           .filter(v -> ! StringUtils.isEmpty(v.getPrivateVote()))
-                                           .map(VoteDTO :: getPrivateVote)
-                                           .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        Optional<Long> max    = collect.values().stream().max(Comparator.naturalOrder());
-        String         result = "n/a";
-        if (max.isPresent()) {
-            result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry :: getKey).map(String :: valueOf).collect(Collectors.joining(","));
-            result = result + " with " + max.get() + " votes";
+        String result = "n/a";
+
+        if (session.getShowVotes()) {
+            Map<String, Long> collect = session.getVotes()
+                                               .stream()
+                                               .filter(v -> ! StringUtils.isEmpty(v.getPrivateVote()))
+                                               .map(VoteDTO :: getPrivateVote)
+                                               .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+            Optional<Long>    max     = collect.values().stream().max(Comparator.naturalOrder());
+            if (max.isPresent()) {
+                result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry :: getKey).map(String :: valueOf).collect(Collectors.joining(","));
+                result = result + " with " + max.get() + " votes";
+            }
         }
 
         log.info(">>> Vote result : {}", result);
@@ -87,11 +89,13 @@ public class PokerService {
         sessions.forEach(session -> session.removePlayer(player));
     }
 
-    public static void vote(final SessionDTO session, final PlayerDTO player, final String vote) {
-        session.voteInSession(player, vote);
-        log.info(">>> {} voted {}", player.getName(), vote);
-        session.setVoteResult(getVoteResults(session));
-        hideVotes(session);
+    public static boolean vote(final SessionDTO session, final PlayerDTO player, final String vote) {
+        boolean didVote = session.voteInSession(player, vote);
+        if (didVote) {
+            log.info(">>> {} voted {}", player.getName(), vote);
+            hideVotes(session);
+        }
+        return didVote;
     }
 
     public static Optional<SessionDTO> findSession(final String sessionId) {
@@ -99,8 +103,8 @@ public class PokerService {
     }
 
     public static void revealVotes(final SessionDTO session) {
-        session.getVotes().forEach(VoteDTO :: revealVote);
         session.setShowVotes(true);
+        session.getVotes().forEach(VoteDTO :: revealVote);
         session.updateLastModificationTimestamp();
     }
 

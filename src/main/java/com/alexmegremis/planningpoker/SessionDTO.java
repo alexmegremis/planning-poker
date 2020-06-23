@@ -21,9 +21,6 @@ public class SessionDTO implements Identifiable, Serializable {
     private Long   lastModificationTimestamp = Instant.now().toEpochMilli();
     @Getter
     @Setter
-    private String voteResult;
-    @Getter
-    @Setter
     private Boolean showVotes = false;
     @Getter
     private JiraIssueDTO jiraIssue;
@@ -52,19 +49,22 @@ public class SessionDTO implements Identifiable, Serializable {
         updateLastModificationTimestamp();
     }
 
-    public void voteInSession(final PlayerDTO player, final String vote) {
-        Optional<VoteDTO> existingVote = votes.stream().filter(aVote -> aVote.getPlayer().equals(player)).findFirst();
-        if (existingVote.isPresent()) {
-            existingVote.get().vote(vote);
-            log.info(">>> {} voted {} - updated", player.getName(), vote);
-        } else {
-            VoteDTO newVote = VoteDTO.builder().session(this).player(player).build();
-            newVote.vote(vote);
-            votes.add(newVote);
-            log.info(">>> {} voted {} - new", player.getName(), vote);
+    public boolean voteInSession(final PlayerDTO player, final String vote) {
+        boolean result = players.contains(player);
+        if (result) {
+            Optional<VoteDTO> existingVote = votes.stream().filter(aVote -> aVote.getPlayer().equals(player)).findFirst();
+            if (existingVote.isPresent()) {
+                existingVote.get().vote(vote);
+                log.info(">>> {} voted {} - updated", player.getName(), vote);
+            } else {
+                VoteDTO newVote = VoteDTO.builder().session(this).player(player).build();
+                newVote.vote(vote);
+                votes.add(newVote);
+                log.info(">>> {} voted {} - new", player.getName(), vote);
+            }
+            updateLastModificationTimestamp();
         }
-        voteResult = PokerService.getVoteResults(this);
-        updateLastModificationTimestamp();
+        return result;
     }
 
     public void setJiraIssue(final JiraIssueDTO jiraIssue) {
@@ -75,11 +75,6 @@ public class SessionDTO implements Identifiable, Serializable {
     public void updateLastModificationTimestamp() {
         lastModificationTimestamp = Instant.now().toEpochMilli();
         PokerUI.updateAll();
-    }
-
-    public void setPokerUI(final PokerUI pokerUI) {
-        this.pokerUI = pokerUI;
-        this.pokerUI.setSession(this);
     }
 
     @Override

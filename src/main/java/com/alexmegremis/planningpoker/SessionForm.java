@@ -1,7 +1,6 @@
 package com.alexmegremis.planningpoker;
 
 import com.vaadin.ui.*;
-import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -16,7 +15,7 @@ public class SessionForm extends FormLayout {
     private PokerUI pokerUI;
     private PokerService pokerService;
 
-    public SessionForm(final PokerUI pokerUI, final PokerService pokerService, final String sessionId) {
+    public SessionForm(final PokerUI pokerUI, final PokerService pokerService, final SessionDTO existingSession) {
         this.pokerUI = pokerUI;
         this.pokerService = pokerService;
         setSizeUndefined();
@@ -25,10 +24,9 @@ public class SessionForm extends FormLayout {
 
         createSessionButton.addClickListener(e -> this.save());
         findSessionButton.addClickListener(e -> this.find());
-        if(!StringUtils.isEmpty(sessionId)) {
-            sessionIdInput.setValue(sessionId);
+        if (existingSession != null) {
+            sessionIdInput.setValue(session.getId());
             sessionIdInput.setReadOnly(true);
-            findSessionButton.click();
         }
     }
 
