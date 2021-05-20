@@ -1,6 +1,7 @@
 package com.alexmegremis.planningpoker.integration.jira;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Calendar;
 import java.util.Map;
@@ -9,42 +10,31 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@SuperBuilder()
 public class JiraIssueDTO {
 
-    private String             id;
-    private String             key;
-    private JiraIssueFieldsDTO fields;
+    private String id;
+    private String key;
+
+    private Map<String, String> issueType;
+
+    private String   description;
+    private String   summary;
+    private String   UAC;
+    private Calendar created;
+    private Person   creator;
+    private Person   assignee;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     @EqualsAndHashCode
-    public class JiraIssueFieldsDTO {
+    @Builder
+    public static class Person {
 
-        private Map<String, String> issueType;
-
-        private String   description;
-        private String   summary;
-        private String   UAC;
-        private Calendar created;
-        private Person   creator;
-        private Person   assignee;
-        private String   customfield_10000;
-
-        public String getUAC() {
-            return getCustomfield_10000();
-        }
-
-        @Data
-        @AllArgsConstructor
-        @NoArgsConstructor
-        @EqualsAndHashCode
-        public class Person {
-
-            private String name;
-            private String displayName;
-            private String key;
-            private String emailAddress;
-        }
+        private String name;
+        private String displayName;
+        private String key;
+        private String emailAddress;
     }
 }

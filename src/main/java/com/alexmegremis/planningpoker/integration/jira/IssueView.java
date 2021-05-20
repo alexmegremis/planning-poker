@@ -89,33 +89,29 @@ public class IssueView extends VerticalLayout {
                 this.jiraIssue = jiraIssue;
                 this.currentHashCode = newHashCode;
 
-                JiraIssueDTO.JiraIssueFieldsDTO issueFields = jiraIssue.getFields();
-                issueSummary.setValue(issueFields.getSummary());
+                issueSummary.setValue(jiraIssue.getSummary());
 
                 setIfNotNull(jiraIssue.getKey(), inputIssueKey :: setValue);
 
-                if (issueFields != null) {
+                setIfNotNull(jiraIssue.getDescription(), issueDescription :: setValue);
+                setIfNotNull(jiraIssue.getDescription(), issueDescription :: setValue);
+                setIfNotNull(jiraIssue.getUAC(), issueUAC :: setValue);
+                setIfNotNull(jiraIssue.getSummary(), issueSummary :: setValue);
 
-                    setIfNotNull(issueFields.getDescription(), issueDescription :: setValue);
-                    setIfNotNull(issueFields.getDescription(), issueDescription :: setValue);
-                    setIfNotNull(issueFields.getUAC(), issueUAC :: setValue);
-                    setIfNotNull(issueFields.getSummary(), issueSummary :: setValue);
+                setPersonIfNotNull(jiraIssue.getAssignee(), issueAssignee);
+                setPersonIfNotNull(jiraIssue.getCreator(), issueCreator);
 
-                    setPersonIfNotNull(issueFields.getAssignee(), issueAssignee);
-                    setPersonIfNotNull(issueFields.getCreator(), issueCreator);
-
-                    if (issueFields.getCreated() != null) {
-                        issueCreated.setValue(LocalDateTime.ofInstant(issueFields.getCreated().toInstant(), issueFields.getCreated().getTimeZone().toZoneId()));
-                    }
+                if (jiraIssue.getCreated() != null) {
+                    issueCreated.setValue(LocalDateTime.ofInstant(jiraIssue.getCreated().toInstant(), jiraIssue.getCreated().getTimeZone().toZoneId()));
                 }
             }
         }
     }
 
-    private void setPersonIfNotNull(JiraIssueDTO.JiraIssueFieldsDTO.Person person, AbstractTextField displayField) {
+    private void setPersonIfNotNull(JiraIssueDTO.Person person, AbstractTextField displayField) {
         if (person != null) {
-            setIfNotNull(person.getDisplayName(), displayField::setValue);
-            setIfNotNull(person.getName(), displayField::setDescription);
+            setIfNotNull(person.getDisplayName(), displayField :: setValue);
+            setIfNotNull(person.getName(), displayField :: setDescription);
         }
     }
 
