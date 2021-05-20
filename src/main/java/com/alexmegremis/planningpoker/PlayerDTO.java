@@ -8,7 +8,7 @@ import java.util.Objects;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlayerDTO implements Identifiable, Serializable {
+public class PlayerDTO extends Hideable implements Identifiable, Serializable {
     private String id;
     private String name;
 
@@ -27,5 +27,10 @@ public class PlayerDTO implements Identifiable, Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, name);
+    }
+
+    @Override
+    protected String getHideableValue() {
+        return name;
     }
 }

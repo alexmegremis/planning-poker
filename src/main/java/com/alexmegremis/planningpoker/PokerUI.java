@@ -55,6 +55,9 @@ public class PokerUI extends UI implements Serializable, View {
     private final List<VoteDTO> votes     = new ArrayList<>();
     private final Grid<VoteDTO> votesGrid = new Grid<>();
 
+    private GridLayout votingGrid;
+    private GridLayout votingGridLayout;
+
     private final Label            labelSessionId        = new Label("Session ID");
     private final Label            labelSessionIdValue   = new Label();
     private final Label            labelSessionName      = new Label("Session Name");
@@ -66,6 +69,11 @@ public class PokerUI extends UI implements Serializable, View {
     private final GridLayout       sessionDetailsLayout  = new GridLayout(7, 2);
     private final VerticalLayout   pokerLayout           = new VerticalLayout();
     private final HorizontalLayout votesLayout           = new HorizontalLayout();
+
+
+    private Button revealVotes = new Button("Toggle votes");
+    private Button revealPlayers = new Button("Toggle players");
+    private Button resetVotes = new Button("Reset votes");
 
     private Integer playerCount = 0;
 
@@ -98,38 +106,44 @@ public class PokerUI extends UI implements Serializable, View {
         return result;
     }
 
-    private GridLayout createVotingGrid() {
-        final GridLayout result = new GridLayout(2, 15);
+    private void initVotingGridLayout() {
+        votingGridLayout = new GridLayout(2, 15);
 
         for (int i = 0; i < nums.length; i++) {
-            result.addComponent(getVoteButton(nums[i]));
+            votingGridLayout.addComponent(getVoteButton(nums[i]));
         }
 
-        result.addComponent(getSpacer(), 0, 6, 1, 7);
+        votingGridLayout.addComponent(getSpacer(), 0, 6, 1, 7);
 
-        Button revealVotes = new Button("Show votes");
         revealVotes.setWidth("10em");
-        result.addComponent(revealVotes, 0, 8, 1, 8);
+        votingGridLayout.addComponent(revealVotes, 0, 8, 1, 8);
         revealVotes.addClickListener(event -> {
-            PokerService.revealVotes(session);
+            PokerService.toggleVotes(session);
         });
 
         votesResults.setWidth("10em");
-        result.addComponent(getSpacer(), 0, 9, 1, 9);
-        result.addComponent(votesResults, 0, 10, 1, 10);
+        votingGridLayout.addComponent(getSpacer(), 0, 9, 1, 9);
+        votingGridLayout.addComponent(votesResults, 0, 10, 1, 10);
 
-        Button resetVotes = new Button("Reset votes");
         resetVotes.setWidth("10em");
         resetVotes.addClickListener(event -> {
             ConfirmationDialogue confirm = new ConfirmationDialogue(this, session, PokerService :: resetVotes);
             UI.getCurrent().addWindow(confirm);
         });
-        result.addComponent(getSpacer(), 0, 11, 1, 11);
-        result.addComponent(resetVotes, 0, 12, 1, 12);
+
+        votingGridLayout.addComponent(getSpacer(), 0, 11, 1, 11);
+        votingGridLayout.addComponent(resetVotes, 0, 12, 1, 12);
+
+        votingGridLayout.addComponent(getSpacer(), 0, 13, 1, 13);
+        revealPlayers.setWidth("10em");
+        votingGridLayout.addComponent(revealPlayers, 0, 14, 1, 14);
+        revealPlayers.addClickListener(event -> {
+            ConfirmationDialogue confirm = new ConfirmationDialogue(this, session, PokerService :: togglePlayers);
+            confirm.setModal(true);
+            UI.getCurrent().addWindow(confirm);
+        });
 
         votesResults.setReadOnly(true);
-
-        return result;
     }
 
     @Override
@@ -167,8 +181,8 @@ public class PokerUI extends UI implements Serializable, View {
         this.sessionForm = new SessionForm(this, pokerService, session);
         this.playerForm = new PlayerForm(this, pokerService);
 
-        Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayerName(), new TextRenderer());
-        Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(v -> v.getVote(), new HtmlRenderer());
+        Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(VoteDTO :: getVoterName, new HtmlRenderer());
+        Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(VoteDTO :: getHideable, new HtmlRenderer());
         playerNameColumn.setWidthUndefined();
         playerNameColumn.setCaption("Player");
         playerNameColumn.setResizable(false);
@@ -185,16 +199,16 @@ public class PokerUI extends UI implements Serializable, View {
             }
         });
 
-        GridLayout votingGrid = createVotingGrid();
-        votingGrid.setWidthUndefined();
-        votingGrid.setHeightUndefined();
+        initVotingGridLayout();
+        votingGridLayout.setWidthUndefined();
+        votingGridLayout.setHeightUndefined();
 
         this.issueView = createIssueView();
         issueView.setWidthFull();
         issueView.setHeightUndefined();
 
         initSessionDetailsDisplay();
-        votesLayout.addComponents(votesGrid, votingGrid, issueView);
+        votesLayout.addComponents(votesGrid, votingGridLayout, issueView);
         votesLayout.setExpandRatio(issueView, 0.65f);
         votesLayout.setSpacing(true);
         votesLayout.setWidthFull();
@@ -276,7 +290,7 @@ public class PokerUI extends UI implements Serializable, View {
     private void populateVotes() {
         votes.clear();
         votes.addAll(session.getVotes());
-        log.info(">>> updating {} votes for {}, for {}", votes.size(), session.getId(), player.getName());
+        log.info(">>> updating {} votes for {}, for {}", votes.size(), session.getId(), player.getHideableValue());
         this.access(() -> {
             votesGrid.setItems(votes);
             votesGrid.getDataProvider().refreshAll();
@@ -303,9 +317,19 @@ public class PokerUI extends UI implements Serializable, View {
         Page.getCurrent().setUriFragment(session.getId());
         setState();
         this.knownSessionTimestamp = session.getLastModificationTimestamp();
+
         if (player != null) {
             session.addPlayer(player);
             readyToUse();
+        }
+
+        if(session.getOwner() != this.player) {
+            revealVotes.setVisible(false);
+            resetVotes.setVisible(false);
+//            this.votesGrid.
+            votingGridLayout.removeComponent(revealVotes);
+            votingGridLayout.removeComponent(revealPlayers);
+            votingGridLayout.removeComponent(resetVotes);
         }
 
         doRefresh();

@@ -23,6 +23,9 @@ public class SessionDTO implements Identifiable, Serializable {
     @Setter
     private Boolean showVotes = false;
     @Getter
+    @Setter
+    private Boolean showPlayers = false;
+    @Getter
     private JiraIssueDTO jiraIssue;
     @Getter
     private PokerUI pokerUI;
@@ -31,10 +34,16 @@ public class SessionDTO implements Identifiable, Serializable {
     private final List<PlayerDTO> players = new CopyOnWriteArrayList<>();
 
     @Getter
+    private PlayerDTO owner;
+
+    @Getter
     private final List<VoteDTO> votes = new CopyOnWriteArrayList<>();
 
     public void addPlayer(final PlayerDTO player) {
         players.add(player);
+        if(this.owner == null) {
+            this.owner = player;
+        }
         PokerService.vote(this, player, "");
         updateLastModificationTimestamp();
     }

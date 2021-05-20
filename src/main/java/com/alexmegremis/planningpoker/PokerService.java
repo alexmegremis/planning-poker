@@ -19,15 +19,77 @@ import java.util.stream.Collectors;
 @Scope (value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class PokerService {
 
+    private static final List<PlayerDTO>  players  = new CopyOnWriteArrayList<>();
+    private static final List<SessionDTO> sessions = new CopyOnWriteArrayList<>();
     @Autowired
     private JiraService jiraService;
 
-    private static final List<PlayerDTO>  players  = new CopyOnWriteArrayList<>();
-    private static final List<SessionDTO> sessions = new CopyOnWriteArrayList<>();
+    public static String getVoteResults(final SessionDTO session) {
+
+        String result = "n/a";
+
+        if (session.getShowVotes()) {
+            Map<String, Long> collect = session.getVotes()
+                                               .stream()
+                                               .filter(v -> ! StringUtils.isEmpty(v.getPrivateVote()))
+                                               .map(VoteDTO :: getPrivateVote)
+                                               .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+            Optional<Long> max = collect.values().stream().max(Comparator.naturalOrder());
+            if (max.isPresent()) {
+                result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry :: getKey).map(String :: valueOf).collect(Collectors.joining(","));
+                result = result + " with " + max.get() + " votes";
+            }
+        }
+
+        log.info(">>> Vote result : {}", result);
+        return result;
+    }
+
+    public static void removePlayer(final PlayerDTO player) {
+        players.remove(player);
+        sessions.forEach(session -> session.removePlayer(player));
+    }
+
+    public static Optional<SessionDTO> findSession(final String sessionId) {
+        return sessions.stream().filter(s -> s.getId().equals(sessionId)).findFirst();
+    }
+
+    public static void toggleVotes(final SessionDTO session) {
+        session.setShowVotes(!session.getShowVotes());
+        session.getVotes().forEach(v -> v.setHidden(!session.getShowVotes()));
+        session.updateLastModificationTimestamp();
+    }
+    public static void hideVotes(final SessionDTO session) {
+        session.setShowVotes(false);
+        session.getVotes().forEach(v -> v.setHidden(!session.getShowVotes()));
+        session.updateLastModificationTimestamp();
+    }
+
+    public static void togglePlayers(final SessionDTO session) {
+        session.setShowPlayers(!session.getShowPlayers());
+        session.getPlayers().forEach(p -> p.setHidden(!session.getShowPlayers()));
+        session.updateLastModificationTimestamp();
+    }
+
+    public static void resetVotes(final SessionDTO session) {
+        session.getPlayers().forEach(p -> PokerService.vote(session, p, ""));
+        session.setShowVotes(false);
+        session.getVotes().forEach(v -> v.setHidden(!session.getShowVotes()));
+        session.updateLastModificationTimestamp();
+    }
+
+    public static boolean vote(final SessionDTO session, final PlayerDTO player, final String vote) {
+        boolean didVote = session.voteInSession(player, vote);
+        if (didVote) {
+            log.info(">>> {} voted {}", player.getName(), vote);
+            hideVotes(session);
+        }
+        return didVote;
+    }
 
     public SessionDTO createSession(final String sessionName) {
         String     sessionId = String.valueOf(getUniqueId(new ArrayList<>(sessions)));
-        SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).build();
+        SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).showPlayers(false).build();
         sessions.add(result);
 
 //        for (int i = 1; i < 4; i++) {
@@ -61,63 +123,6 @@ public class PokerService {
         PlayerDTO result   = new PlayerDTO(playerId, playerName);
         players.add(result);
         return result;
-    }
-
-    public static String getVoteResults(final SessionDTO session) {
-
-        String result = "n/a";
-
-        if (session.getShowVotes()) {
-            Map<String, Long> collect = session.getVotes()
-                                               .stream()
-                                               .filter(v -> ! StringUtils.isEmpty(v.getPrivateVote()))
-                                               .map(VoteDTO :: getPrivateVote)
-                                               .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-            Optional<Long>    max     = collect.values().stream().max(Comparator.naturalOrder());
-            if (max.isPresent()) {
-                result = collect.entrySet().stream().filter(e -> e.getValue().equals(max.get())).map(Map.Entry :: getKey).map(String :: valueOf).collect(Collectors.joining(","));
-                result = result + " with " + max.get() + " votes";
-            }
-        }
-
-        log.info(">>> Vote result : {}", result);
-        return result;
-    }
-
-    public static void removePlayer(final PlayerDTO player) {
-        players.remove(player);
-        sessions.forEach(session -> session.removePlayer(player));
-    }
-
-    public static boolean vote(final SessionDTO session, final PlayerDTO player, final String vote) {
-        boolean didVote = session.voteInSession(player, vote);
-        if (didVote) {
-            log.info(">>> {} voted {}", player.getName(), vote);
-            hideVotes(session);
-        }
-        return didVote;
-    }
-
-    public static Optional<SessionDTO> findSession(final String sessionId) {
-        return sessions.stream().filter(s -> s.getId().equals(sessionId)).findFirst();
-    }
-
-    public static void revealVotes(final SessionDTO session) {
-        session.setShowVotes(true);
-        session.getVotes().forEach(VoteDTO :: revealVote);
-        session.updateLastModificationTimestamp();
-    }
-
-    public static void hideVotes(final SessionDTO session) {
-        session.getVotes().forEach(VoteDTO :: hideVote);
-        session.setShowVotes(false);
-        session.updateLastModificationTimestamp();
-    }
-
-    public static void resetVotes(final SessionDTO session) {
-        session.getPlayers().forEach(p -> PokerService.vote(session, p, ""));
-        session.setShowVotes(false);
-        session.updateLastModificationTimestamp();
     }
 
     public void findJiraIssue(final SessionDTO session, final String issueKey) {
