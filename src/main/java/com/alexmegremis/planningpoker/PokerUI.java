@@ -181,7 +181,7 @@ public class PokerUI extends UI implements Serializable, View {
         this.sessionForm = new SessionForm(this, pokerService, session);
         this.playerForm = new PlayerForm(this, pokerService);
 
-        Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(VoteDTO :: getVoterName, new HtmlRenderer());
+        Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayer().getHideable(player), new HtmlRenderer());
         Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(VoteDTO :: getHideable, new HtmlRenderer());
         playerNameColumn.setWidthUndefined();
         playerNameColumn.setCaption("Player");

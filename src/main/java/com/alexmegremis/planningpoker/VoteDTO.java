@@ -10,16 +10,13 @@ import java.io.Serializable;
 public class VoteDTO extends Hideable implements Serializable {
 
     private SessionDTO session;
+    @Getter
     private PlayerDTO  player;
     @Getter
     private String     privateVote;
 
     public PlayerDTO getPlayer() {
         return player;
-    }
-
-    public String getVoterName() {
-        return player.getHideable();
     }
 
     public void vote(final String vote) {

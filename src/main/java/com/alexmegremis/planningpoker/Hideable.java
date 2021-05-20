@@ -33,4 +33,15 @@ public abstract class Hideable {
 
         return result;
     }
+
+    public String getHideable(Hideable that) {
+        String result;
+        if(StringUtils.isEmpty(getHideableValue())) {
+            result = "";
+        } else if (this == that) {
+            result = getHideableValue();
+        } else result = hidden ? FontAwesome.EYE_SLASH.getHtml() : getHideableValue();
+
+        return result;
+    }
 }
