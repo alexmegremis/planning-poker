@@ -1,5 +1,6 @@
 package com.alexmegremis.planningpoker;
 
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 
 import java.util.function.Consumer;
@@ -17,7 +18,9 @@ public class ConfirmationDialogue extends Window {
         Button           no      = new Button("No", event -> close());
         HorizontalLayout buttons = new HorizontalLayout(yes, no);
         buttons.setMargin(true);
-        this.setModal(true);
+        setModal(true);
+        setResizable(false);
+        setDraggable(false);
         setContent(buttons);
         setWidth("20em");
     }

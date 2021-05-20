@@ -92,14 +92,6 @@ public class PokerService {
         SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).showPlayers(false).build();
         sessions.add(result);
 
-//        for (int i = 1; i < 4; i++) {
-//            PlayerDTO player = createPlayer("Session_" + sessionId + "_TestPlayer_" + i);
-//            result.addPlayer(player);
-//            int randomNum = ThreadLocalRandom.current().nextInt(0, PokerUI.nums.length);
-//
-//            vote(result, player, PokerUI.nums[randomNum]);
-//        }
-
         return result;
     }
 

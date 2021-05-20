@@ -43,7 +43,6 @@ public class JiraService {
     public void getIssueByKey(final PokerService pokerService, final SessionDTO session, final String issueKey) {
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance().scheme(jiraScheme).host(jiraHostname).port(jiraPort)
-//                                                                        .pathSegment(issueAPI, issueKey)
                                                                         .queryParam("fields", "description,summary,created,creator,assignee," + fieldNameUAC);
 
         Arrays.stream(issueAPI.split("/")).forEach(uriComponentsBuilder :: pathSegment);

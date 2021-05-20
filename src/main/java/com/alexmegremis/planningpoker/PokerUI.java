@@ -195,7 +195,6 @@ public class PokerUI extends UI implements Serializable, View {
             if (click.isAltKey() && click.isShiftKey()) {
                 ConfirmationDialogue confirm = new ConfirmationDialogue(this, e.getItem().getPlayer(), PokerService :: removePlayer);
                 UI.getCurrent().addWindow(confirm);
-                //                PokerService.removePlayer(e.getItem().getPlayer());
             }
         });
 
@@ -242,8 +241,6 @@ public class PokerUI extends UI implements Serializable, View {
                 this.access(() -> {
                     this.votesResults.setValue(PokerService.getVoteResults(session));
                 });
-                log.info(">>> updated session {} for {}, session showVotes is {}, UI {} showVotes is {}", session.getId(), player.getName(), session.getShowVotes(), votesResults,
-                         votesResults.isVisible());
             }
 
             if (playerCount != session.getPlayers().size()) {
@@ -326,7 +323,6 @@ public class PokerUI extends UI implements Serializable, View {
         if(session.getOwner() != this.player) {
             revealVotes.setVisible(false);
             resetVotes.setVisible(false);
-//            this.votesGrid.
             votingGridLayout.removeComponent(revealVotes);
             votingGridLayout.removeComponent(revealPlayers);
             votingGridLayout.removeComponent(resetVotes);
