@@ -55,7 +55,6 @@ public class PokerUI extends UI implements Serializable, View {
     private final List<VoteDTO> votes     = new ArrayList<>();
     private final Grid<VoteDTO> votesGrid = new Grid<>();
 
-    private GridLayout votingGrid;
     private GridLayout votingGridLayout;
 
     private final Label            labelSessionId        = new Label("Session ID");

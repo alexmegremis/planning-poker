@@ -3,14 +3,13 @@ package com.alexmegremis.planningpoker.integration.jira;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Calendar;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-@SuperBuilder()
+@SuperBuilder ()
 public class JiraIssueDTO {
 
     private String id;
@@ -18,12 +17,13 @@ public class JiraIssueDTO {
 
     private Map<String, String> issueType;
 
-    private String   description;
-    private String   summary;
-    private String   UAC;
-    private Calendar created;
-    private Person   creator;
-    private Person   assignee;
+    private String       description;
+    private String       summary;
+    private String       UAC;
+    private Calendar     created;
+    private Person       creator;
+    private Person       assignee;
+    private List<String> labels;
 
     @Data
     @AllArgsConstructor

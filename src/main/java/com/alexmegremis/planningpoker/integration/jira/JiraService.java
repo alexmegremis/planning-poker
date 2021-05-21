@@ -11,12 +11,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.netty.http.client.HttpClient;
 
-import java.util.Arrays;
-import java.util.Base64;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
 
@@ -24,6 +27,8 @@ import static org.springframework.web.reactive.function.client.WebClient.Respons
 @SpringComponent
 @Scope (value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class JiraService {
+
+    public static final String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
     @Value ("${jira.scheme}")
     private String jiraScheme;
@@ -42,8 +47,11 @@ public class JiraService {
 
     public void getIssueByKey(final PokerService pokerService, final SessionDTO session, final String issueKey) {
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance().scheme(jiraScheme).host(jiraHostname).port(jiraPort)
-                                                                        .queryParam("fields", "description,summary,created,creator,assignee," + fieldNameUAC);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance()
+                                                                        .scheme(jiraScheme)
+                                                                        .host(jiraHostname)
+                                                                        .port(jiraPort)
+                                                                        .queryParam("fields", "description,summary,created,creator,assignee,labels," + fieldNameUAC);
 
         Arrays.stream(issueAPI.split("/")).forEach(uriComponentsBuilder :: pathSegment);
         uriComponentsBuilder.pathSegment(issueKey);
@@ -67,6 +75,16 @@ public class JiraService {
 
         final JsonObject fields = root.getAsJsonObject("fields");
 
+        Calendar created       = null;
+        String   createdAsText = getJsonValueSafe(fields, "created");
+        if (! StringUtils.isEmpty(createdAsText)) {
+            created = Calendar.getInstance();
+            created.setTime(fromTimeString(createdAsText));
+        }
+
+        List<String> labels = new ArrayList<>();
+        fields.getAsJsonArray("labels").forEach(l -> labels.add(l.getAsString()));
+
         result = JiraIssueDTO.builder()
                              .id(getJsonValueSafe(root, "id"))
                              .key(getJsonValueSafe(root, "key"))
@@ -75,6 +93,8 @@ public class JiraService {
                              .UAC(getJsonValueSafe(fields, fieldNameUAC))
                              .assignee(createIssuePerson(fields.get("assignee").getAsJsonObject()))
                              .creator(createIssuePerson(fields.get("creator").getAsJsonObject()))
+                             .created(created)
+                             .labels(labels)
                              .build();
 
         return result;
@@ -97,5 +117,15 @@ public class JiraService {
                                                         .emailAddress(getJsonValueSafe(person, "emailAddress"))
                                                         .build();
         return result;
+    }
+
+    public static Date fromTimeString(@Nullable String time) throws IllegalArgumentException {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(TIME_FORMAT);
+            format.setLenient(false);
+            return time != null ? format.parse(time) : null;
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Error parsing time: " + time, e);
+        }
     }
 }
