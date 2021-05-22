@@ -5,7 +5,6 @@ import com.alexmegremis.planningpoker.SessionDTO;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
-import com.vaadin.ui.renderers.HtmlRenderer;
 import lombok.Getter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -25,7 +24,6 @@ public class IssueView extends VerticalLayout {
 
     private JiraIssueDTO jiraIssue;
 
-    private final TextField     issueLabels      = new TextField("labels");
     private final TextField     issueSummary     = new TextField("Summary");
     private final TextArea      issueDescription = new TextArea("Description");
     private final TextArea      issueUAC         = new TextArea("UAC");
@@ -37,9 +35,11 @@ public class IssueView extends VerticalLayout {
 
     private final FormLayout issueForm = new FormLayout(inputIssueKey, buttonFindIssue);
 
+    private final CssLayout      labelsLayout    = new CssLayout();
+    private final VerticalLayout labelsContainer = new VerticalLayout();
+
     public IssueView() {
 
-        issueLabels.setReadOnly(true);
         issueSummary.setReadOnly(true);
         issueDescription.setReadOnly(true);
         issueUAC.setReadOnly(true);
@@ -69,15 +69,13 @@ public class IssueView extends VerticalLayout {
             pokerService.findJiraIssue(this.session, inputIssueKey.getValue());
         });
 
-        Label label01 = new Label();
-        label01.setContentMode(ContentMode.HTML);
-        label01.setValue(FontAwesome.TAG.getHtml() + "Refined");
+        labelsContainer.setWidthFull();
+        labelsContainer.setHeightUndefined();
+        labelsContainer.setMargin(false);
 
-        Label label02 = new Label();
-        label02.setContentMode(ContentMode.HTML);
-        label02.setValue(FontAwesome.TAG.getHtml() + "ELMA");
+        labelsContainer.addComponents(new Label("Labels"), labelsLayout);
 
-        addComponents(issueForm, issueLabels,label01, label02, issueSummary, issueDescription, issueUAC, issueCreated, issueCreator, issueAssignee);
+        addComponents(issueForm, labelsContainer, issueSummary, issueDescription, issueUAC, issueCreated, issueCreator, issueAssignee);
     }
 
     public void init(final PokerService pokerService, final JiraService jiraService, final SessionDTO session) {
@@ -100,7 +98,6 @@ public class IssueView extends VerticalLayout {
                 StringBuilder sb = new StringBuilder();
                 jiraIssue.getLabels().stream().map(l -> FontAwesome.TAG.toString() + l).forEach(sb :: append);
 
-                issueLabels.setValue(sb.toString());
                 issueSummary.setValue(jiraIssue.getSummary());
 
                 setIfNotNull(jiraIssue.getKey(), inputIssueKey :: setValue);
@@ -111,6 +108,14 @@ public class IssueView extends VerticalLayout {
 
                 setPersonIfNotNull(jiraIssue.getAssignee(), issueAssignee);
                 setPersonIfNotNull(jiraIssue.getCreator(), issueCreator);
+
+                labelsLayout.removeAllComponents();
+                jiraIssue.getLabels().stream().forEach(l -> {
+                    Label label = new Label();
+                    label.setContentMode(ContentMode.HTML);
+                    label.setValue(FontAwesome.TAG.getHtml() + l);
+                    labelsLayout.addComponent(label);
+                });
 
                 if (jiraIssue.getCreated() != null) {
                     issueCreated.setValue(LocalDateTime.ofInstant(jiraIssue.getCreated().toInstant(), jiraIssue.getCreated().getTimeZone().toZoneId()));
