@@ -2,7 +2,7 @@ package com.alexmegremis.planningpoker.integration.jira;
 
 import com.alexmegremis.planningpoker.PokerService;
 import com.alexmegremis.planningpoker.SessionDTO;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import lombok.Getter;
@@ -11,6 +11,8 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
+
+import static com.vaadin.icons.VaadinIcons.TAG;
 
 public class IssueView extends VerticalLayout {
 
@@ -96,7 +98,7 @@ public class IssueView extends VerticalLayout {
                 this.currentHashCode = newHashCode;
 
                 StringBuilder sb = new StringBuilder();
-                jiraIssue.getLabels().stream().map(l -> FontAwesome.TAG.toString() + l).forEach(sb :: append);
+                jiraIssue.getLabels().stream().map(l -> TAG + l).forEach(sb :: append);
 
                 issueSummary.setValue(jiraIssue.getSummary());
 
@@ -113,7 +115,8 @@ public class IssueView extends VerticalLayout {
                 jiraIssue.getLabels().stream().forEach(l -> {
                     Label label = new Label();
                     label.setContentMode(ContentMode.HTML);
-                    label.setValue(FontAwesome.TAG.getHtml() + l);
+                    label.setValue(VaadinIcons.TAG.getHtml() + l);
+                    label.addStyleName("jira-label");
                     labelsLayout.addComponent(label);
                 });
 

@@ -24,7 +24,7 @@ import java.util.*;
 import static com.vaadin.ui.Grid.Column;
 
 @Slf4j
-@Theme ("valo")
+@Theme ("mytheme")
 @PreserveOnRefresh
 @Push (PushMode.AUTOMATIC)
 @SpringUI
