@@ -13,22 +13,26 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Builder
 public class SessionDTO implements Identifiable, Serializable {
 
+    private Long lastModificationTimestamp = Instant.now().toEpochMilli();
+
+    public synchronized Long getLastModificationTimestamp() {
+        return lastModificationTimestamp;
+    }
+
     @Getter
-    private String id;
+    private final String       id;
     @Getter
-    private String name;
-    @Getter
-    private Long   lastModificationTimestamp = Instant.now().toEpochMilli();
+    private final String       name;
     @Getter
     @Setter
-    private Boolean showVotes = false;
+    private       Boolean      showVotes;
     @Getter
     @Setter
-    private Boolean showPlayers = false;
+    private       Boolean      showPlayers;
     @Getter
-    private JiraIssueDTO jiraIssue;
+    private       JiraIssueDTO jiraIssue;
     @Getter
-    private PokerUI pokerUI;
+    private final PokerUI      pokerUI;
 
     @Getter
     private final List<PlayerDTO> players = new CopyOnWriteArrayList<>();
@@ -41,7 +45,7 @@ public class SessionDTO implements Identifiable, Serializable {
 
     public void addPlayer(final PlayerDTO player) {
         players.add(player);
-        if(this.owner == null) {
+        if (this.owner == null) {
             this.owner = player;
         }
         PokerService.vote(this, player, "");

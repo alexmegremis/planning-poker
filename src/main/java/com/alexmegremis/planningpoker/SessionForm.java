@@ -6,14 +6,14 @@ import java.util.Optional;
 
 public class SessionForm extends FormLayout {
 
-    private TextField sessionIdInput    = new TextField("Session ID");
-    private TextField sessionNameInput  = new TextField("Session Name");
-    private Button    findSessionButton = new Button("Find");
-    private Button    createSessionButton = new Button("Create");
+    private final TextField sessionIdInput    = new TextField("Session ID");
+    private final TextField sessionNameInput  = new TextField("Session Name");
+    private final Button    findSessionButton = new Button("Find");
+    private final Button    createSessionButton = new Button("Create");
     private SessionDTO session;
 
-    private PokerUI pokerUI;
-    private PokerService pokerService;
+    private final PokerUI pokerUI;
+    private final PokerService pokerService;
 
     public SessionForm(final PokerUI pokerUI, final PokerService pokerService, final SessionDTO existingSession) {
         this.pokerUI = pokerUI;

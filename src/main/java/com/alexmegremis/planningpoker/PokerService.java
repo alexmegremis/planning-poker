@@ -31,8 +31,8 @@ public class PokerService {
         if (session.getShowVotes()) {
             Map<String, Long> collect = session.getVotes()
                                                .stream()
-                                               .filter(v -> ! StringUtils.isEmpty(v.getPrivateVote()))
                                                .map(VoteDTO :: getPrivateVote)
+                                               .filter(privateVote -> ! StringUtils.isEmpty(privateVote))
                                                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
             Optional<Long> max = collect.values().stream().max(Comparator.naturalOrder());
             if (max.isPresent()) {
@@ -81,7 +81,6 @@ public class PokerService {
     public static boolean vote(final SessionDTO session, final PlayerDTO player, final String vote) {
         boolean didVote = session.voteInSession(player, vote);
         if (didVote) {
-            log.info(">>> {} voted {}", player.getName(), vote);
             hideVotes(session);
         }
         return didVote;

@@ -12,8 +12,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.function.Consumer;
 
-import static com.vaadin.icons.VaadinIcons.TAG;
-
 public class IssueView extends VerticalLayout {
 
     //    private final PokerUI     pokerUI;
@@ -77,7 +75,7 @@ public class IssueView extends VerticalLayout {
 
         labelsContainer.addComponents(new Label("Labels"), labelsLayout);
 
-        addComponents(issueForm, labelsContainer, issueSummary, issueDescription, issueUAC, issueCreated, issueCreator, issueAssignee);
+        addComponents(issueForm, labelsLayout, issueSummary, issueDescription, issueUAC, issueCreated, issueCreator, issueAssignee);
     }
 
     public void init(final PokerService pokerService, final JiraService jiraService, final SessionDTO session) {
@@ -97,9 +95,6 @@ public class IssueView extends VerticalLayout {
                 this.jiraIssue = jiraIssue;
                 this.currentHashCode = newHashCode;
 
-                StringBuilder sb = new StringBuilder();
-                jiraIssue.getLabels().stream().map(l -> TAG + l).forEach(sb :: append);
-
                 issueSummary.setValue(jiraIssue.getSummary());
 
                 setIfNotNull(jiraIssue.getKey(), inputIssueKey :: setValue);
@@ -112,7 +107,7 @@ public class IssueView extends VerticalLayout {
                 setPersonIfNotNull(jiraIssue.getCreator(), issueCreator);
 
                 labelsLayout.removeAllComponents();
-                jiraIssue.getLabels().stream().forEach(l -> {
+                jiraIssue.getLabels().forEach(l -> {
                     Label label = new Label();
                     label.setContentMode(ContentMode.HTML);
                     label.setValue(VaadinIcons.TAG.getHtml() + l);

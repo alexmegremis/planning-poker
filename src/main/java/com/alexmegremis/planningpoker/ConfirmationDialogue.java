@@ -1,13 +1,12 @@
 package com.alexmegremis.planningpoker;
 
-import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 
 import java.util.function.Consumer;
 
 public class ConfirmationDialogue extends Window {
 
-    public <T> ConfirmationDialogue(final PokerUI pokerUI, T value, Consumer<T> consumer) {
+    public <T> ConfirmationDialogue(T value, Consumer<T> consumer) {
         super("Are you sure?");
         center();
         setClosable(false);

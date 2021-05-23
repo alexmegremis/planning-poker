@@ -14,7 +14,6 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.HtmlRenderer;
-import com.vaadin.ui.renderers.TextRenderer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -38,8 +37,8 @@ public class PokerUI extends UI implements Serializable, View {
 
     private static final Set<PokerUI> allUIs = new HashSet<>();
 
-    public static final void updateAll() {
-        allUIs.forEach(PokerUI :: doRefresh);
+    public static void updateAll() {
+        allUIs.parallelStream().forEach(PokerUI :: doRefresh);
     }
 
     private Boolean     detached = false;
@@ -49,8 +48,9 @@ public class PokerUI extends UI implements Serializable, View {
     private PlayerDTO  player;
     private SessionDTO session;
     private Long       knownSessionTimestamp;
-    private IssueView  issueView;
-    private TextField  votesResults = new TextField("Results");
+
+    private       IssueView issueView;
+    private final TextField votesResults = new TextField("Results");
 
     private final List<VoteDTO> votes     = new ArrayList<>();
     private final Grid<VoteDTO> votesGrid = new Grid<>();
@@ -70,9 +70,9 @@ public class PokerUI extends UI implements Serializable, View {
     private final HorizontalLayout votesLayout           = new HorizontalLayout();
 
 
-    private Button revealVotes = new Button("Toggle votes");
-    private Button revealPlayers = new Button("Toggle players");
-    private Button resetVotes = new Button("Reset votes");
+    private final Button revealVotes = new Button("Toggle votes");
+    private final Button revealPlayers = new Button("Toggle players");
+    private final Button resetVotes = new Button("Reset votes");
 
     private Integer playerCount = 0;
 
@@ -82,9 +82,7 @@ public class PokerUI extends UI implements Serializable, View {
     public void enter(final ViewChangeEvent event) {
         String               param   = event.getParameters().trim();
         Optional<SessionDTO> session = PokerService.findSession(param);
-        if (session.isPresent()) {
-            this.setSession(session.get());
-        }
+        session.ifPresent(this::setSession);
     }
 
     private Label getSpacer() {
@@ -108,17 +106,15 @@ public class PokerUI extends UI implements Serializable, View {
     private void initVotingGridLayout() {
         votingGridLayout = new GridLayout(2, 15);
 
-        for (int i = 0; i < nums.length; i++) {
-            votingGridLayout.addComponent(getVoteButton(nums[i]));
+        for (final String num : nums) {
+            votingGridLayout.addComponent(getVoteButton(num));
         }
 
         votingGridLayout.addComponent(getSpacer(), 0, 6, 1, 7);
 
         revealVotes.setWidth("10em");
         votingGridLayout.addComponent(revealVotes, 0, 8, 1, 8);
-        revealVotes.addClickListener(event -> {
-            PokerService.toggleVotes(session);
-        });
+        revealVotes.addClickListener(event -> PokerService.toggleVotes(session));
 
         votesResults.setWidth("10em");
         votingGridLayout.addComponent(getSpacer(), 0, 9, 1, 9);
@@ -126,7 +122,7 @@ public class PokerUI extends UI implements Serializable, View {
 
         resetVotes.setWidth("10em");
         resetVotes.addClickListener(event -> {
-            ConfirmationDialogue confirm = new ConfirmationDialogue(this, session, PokerService :: resetVotes);
+            ConfirmationDialogue confirm = new ConfirmationDialogue(session, PokerService :: resetVotes);
             UI.getCurrent().addWindow(confirm);
         });
 
@@ -137,7 +133,7 @@ public class PokerUI extends UI implements Serializable, View {
         revealPlayers.setWidth("10em");
         votingGridLayout.addComponent(revealPlayers, 0, 14, 1, 14);
         revealPlayers.addClickListener(event -> {
-            ConfirmationDialogue confirm = new ConfirmationDialogue(this, session, PokerService :: togglePlayers);
+            ConfirmationDialogue confirm = new ConfirmationDialogue(session, PokerService :: togglePlayers);
             confirm.setModal(true);
             UI.getCurrent().addWindow(confirm);
         });
@@ -171,9 +167,7 @@ public class PokerUI extends UI implements Serializable, View {
     private void processParams() {
         String               uriSessionId = Page.getCurrent().getUriFragment();
         Optional<SessionDTO> session      = PokerService.findSession(uriSessionId);
-        if (session.isPresent()) {
-            setSession(session.get());
-        }
+        session.ifPresent(this :: setSession);
     }
 
     private void initUIs() {
@@ -192,7 +186,7 @@ public class PokerUI extends UI implements Serializable, View {
         votesGrid.addItemClickListener(e -> {
             MouseEventDetails click = e.getMouseEventDetails();
             if (click.isAltKey() && click.isShiftKey()) {
-                ConfirmationDialogue confirm = new ConfirmationDialogue(this, e.getItem().getPlayer(), PokerService :: removePlayer);
+                ConfirmationDialogue confirm = new ConfirmationDialogue(e.getItem().getPlayer(), PokerService :: removePlayer);
                 UI.getCurrent().addWindow(confirm);
             }
         });
@@ -234,19 +228,16 @@ public class PokerUI extends UI implements Serializable, View {
     public void doRefresh() {
         if (! detached && player != null && session != null) {
             Long latestSessionTimestamp = session.getLastModificationTimestamp();
+
             if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
                 knownSessionTimestamp = latestSessionTimestamp;
                 populateVotes();
-                this.access(() -> {
-                    this.votesResults.setValue(PokerService.getVoteResults(session));
-                });
+                this.access(() -> this.votesResults.setValue(PokerService.getVoteResults(session)));
             }
 
             if (playerCount != session.getPlayers().size()) {
                 playerCount = session.getPlayers().size();
-                this.access(() -> {
-                    this.labelPlayerCountValue.setValue(String.valueOf(playerCount));
-                });
+                this.access(() -> this.labelPlayerCountValue.setValue(String.valueOf(playerCount)));
             }
 
             this.issueView.setJiraIssue(session.getJiraIssue());
