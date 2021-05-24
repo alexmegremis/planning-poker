@@ -1,0 +1,40 @@
+---
+# A task to build a Docker image for a Java app with Jib
+
+# Task definition
+
+platform: linux
+container_limits: {}
+
+# Use the 'maven:3.6.3' image from Docker Hub
+image_resource:
+  type: registry-image
+  source:
+    repository: maven
+    tag: 3.6.3
+
+# Cache Maven artifacts so we don't download the internet again
+# Caches are scoped to a particular task name inside of a pipeline's job.
+caches:
+  - path: $HOME/.m2/repository
+
+# We will provide an input called 'git' to this Task
+# This causes Concourse to git checkout a specific commit.
+# It also allows us to execute this step independently, for a specific Git commit.
+# However, the parent pipeline only runs this task when the previous 'unit' job has passed.
+inputs:
+  - name: git
+
+outputs:
+  - name: image # Concourse creates this directory for us. This will hold the OCI image .tar
+
+# What do we want this task to do?
+# Tell Concourse the commands it should execute, in this Task
+# Build an OCI image as a .tar file. Skip unit tests, because we've already run them in the previous Job
+#     mvn compile jib:buildTar ... -DskipTests
+run:
+  path: /bin/sh
+  args:
+  - -c
+  - |
+    mvn -B -f git/pom.xml 
