@@ -44,6 +44,14 @@ resources:
         qHrG9tEI+NK4B0Vusi7b3LxGOsrRCWakXvCVY+e4I/z+sZrXlymfeQevIo3r0B8m1HjDY3
         uesvo3xYGH8PJ9AAAAGGFsZXhtZWdyZW1pc0BQRUFSTC5sb2NhbAEC
         -----END OPENSSH PRIVATE KEY-----
+  - name: image
+    type: registry-image
+    icon: docker
+    source:
+      repository: ((image-name))
+      username: ((registry-username))
+      password: ((registry-password))
+      tag: latest
 
 jobs:
   - name: package
@@ -51,3 +59,5 @@ jobs:
     - get: planning-poker
     - task: maven-package
       file: planning-poker/maven-package.yml
+    - put: image
+      params: {image: image/planning-poker.tar}
