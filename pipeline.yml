@@ -3,7 +3,7 @@ resources:
     icon: github
     type: git
     source:
-      uri: git@gitlab02.aamegremis.com:alexmegremis/poker-planning.git
+      uri: git@gitlab02.pve.aamegremis.com:alexmegremis/poker-planning.git
       branch: master
       private_key: |
         -----BEGIN OPENSSH PRIVATE KEY-----
