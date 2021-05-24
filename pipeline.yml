@@ -7,8 +7,8 @@ resources:
       branch: master
 
 jobs:
-  - name: planning-poker
+  - name: package
     plan:
-    - get: git
+    - get: planning-poker
     - task: maven-package
       file: git/maven-package.yml
