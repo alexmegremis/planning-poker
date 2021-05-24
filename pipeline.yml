@@ -5,14 +5,6 @@ resources:
     source:
       url: https://gitlab02.aamegremis.com/alexmegremis/poker-planning.git
       branch: master
-  - name: image
-    type: registry-image
-    icon: docker
-    source:
-      repository: ((image-name))
-      username: ((registry-username))
-      password: ((registry-password))
-      tag: latest
 
 jobs:
   - name: package
