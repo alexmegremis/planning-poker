@@ -37,4 +37,4 @@ run:
   args:
   - -c
   - |
-    mvn -B clean package
+    mvn -B -f planning-poker/pom.xml clean package
