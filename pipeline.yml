@@ -3,7 +3,7 @@ resources:
     icon: github
     type: git
     source:
-      url: https://gitlab02.aamegremis.com/alexmegremis/poker-planning.git
+      uri: https://gitlab02.aamegremis.com/alexmegremis/poker-planning.git
       branch: master
 
 jobs:
