@@ -23,7 +23,7 @@ caches:
 # It also allows us to execute this step independently, for a specific Git commit.
 # However, the parent pipeline only runs this task when the previous 'unit' job has passed.
 inputs:
-  - name: git
+  - name: planning-poker
 
 outputs:
   - name: image # Concourse creates this directory for us. This will hold the OCI image .tar

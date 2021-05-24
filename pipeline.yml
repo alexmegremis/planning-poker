@@ -50,4 +50,4 @@ jobs:
     plan:
     - get: planning-poker
     - task: maven-package
-      file: maven-package.yml
+      file: planning-poker/maven-package.yml
