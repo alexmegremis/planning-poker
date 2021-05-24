@@ -3,8 +3,47 @@ resources:
     icon: github
     type: git
     source:
-      uri: https://gitlab02.aamegremis.com/alexmegremis/poker-planning.git
+      uri: git@gitlab02.aamegremis.com:alexmegremis/poker-planning.git
       branch: master
+      private_key: |
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        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
+        -----END OPENSSH PRIVATE KEY-----
 
 jobs:
   - name: package
