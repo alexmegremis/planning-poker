@@ -107,11 +107,7 @@
                 <version>3.0.0</version>
                 <configuration>
                     <to>
-                        <image>dockerregistry.pve.aamegremis.com/alexmegremis/planning-poker</image>
-<!--                        <auth>-->
-<!--                            <username>${env.REGISTRY_USERNAME}</username>-->
-<!--                            <password>${env.REGISTRY_PASSWORD}</password>-->
-<!--                        </auth>-->
+                        <image>dreg.aamegremis.com/alexmegremis/planning-poker</image>
                     </to>
                 </configuration>
             </plugin>
