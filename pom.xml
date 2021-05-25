@@ -121,6 +121,8 @@
                     <to>
                         <image>dreg.aamegremis.com/alexmegremis/planning-poker</image>
                     </to>
+                    <containerizingMode>packaged</containerizingMode>
+                    <allowInsecureRegistries>true</allowInsecureRegistries>
                 </configuration>
             </plugin>
             <plugin>
