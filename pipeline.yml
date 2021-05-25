@@ -55,8 +55,10 @@ resources:
 
 jobs:
   - name: package
+    public: true
     plan:
     - get: planning-poker
+      trigger: true
     - task: maven-package
       file: planning-poker/maven-package.yml
     - put: image
