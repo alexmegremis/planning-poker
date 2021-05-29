@@ -107,8 +107,8 @@
                     </to>
                     <extraDirectories>
                         <paths>
-                            <from>${project.basedir}/src/main/webapp</from>
-                            <to>resources</to>
+                            <from>${project.basedir}/src/main/webapp/VAADIN/themes/mytheme</from>
+                            <to>/app/resources/webapp</to>
                         </paths>
                     </extraDirectories>
 <!--                    <containerizingMode>packaged</containerizingMode>-->
