@@ -108,10 +108,10 @@
                     <extraDirectories>
                         <paths>
                             <from>${project.basedir}/src/main/webapp</from>
-                            <to>/resources</to>
+                            <to>resources</to>
                         </paths>
                     </extraDirectories>
-                    <containerizingMode>packaged</containerizingMode>
+<!--                    <containerizingMode>packaged</containerizingMode>-->
                     <allowInsecureRegistries>true</allowInsecureRegistries>
                 </configuration>
             </plugin>
