@@ -88,6 +88,11 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <layers>
+                        <enabled>false</enabled>
+                    </layers>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
@@ -97,24 +102,24 @@
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>com.google.cloud.tools</groupId>
-                <artifactId>jib-maven-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <to>
-                        <image>dreg.aamegremis.com/alexmegremis/planning-poker</image>
-                    </to>
-                    <extraDirectories>
-                        <paths>
-                            <from>${project.basedir}/src/main/webapp/VAADIN/themes/mytheme</from>
-                            <to>/app/resources/webapp</to>
-                        </paths>
-                    </extraDirectories>
-<!--                    <containerizingMode>packaged</containerizingMode>-->
-                    <allowInsecureRegistries>true</allowInsecureRegistries>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>com.google.cloud.tools</groupId>-->
+<!--                <artifactId>jib-maven-plugin</artifactId>-->
+<!--                <version>3.0.0</version>-->
+<!--                <configuration>-->
+<!--                    <to>-->
+<!--                        <image>dreg.aamegremis.com/alexmegremis/planning-poker</image>-->
+<!--                    </to>-->
+<!--                    <extraDirectories>-->
+<!--                        <paths>-->
+<!--                            <from>${project.basedir}/src/main/webapp/VAADIN/themes/mytheme</from>-->
+<!--                            <to>/app/resources/webapp</to>-->
+<!--                        </paths>-->
+<!--                    </extraDirectories>-->
+<!--&lt;!&ndash;                    <containerizingMode>packaged</containerizingMode>&ndash;&gt;-->
+<!--                    <allowInsecureRegistries>true</allowInsecureRegistries>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
