@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:11-jdk-oracle
 EXPOSE 8080
 RUN "ls -lA"
 RUN "find ."
