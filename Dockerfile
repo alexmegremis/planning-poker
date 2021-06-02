@@ -1,4 +1,5 @@
-FROM openjdk:11-jdk-oracle
+#FROM openjdk:11-jdk-oracle
+FROM adoptopenjdk/openjdk11:x86_64-debian-jdk-11.0.10_9
 EXPOSE 8080
 RUN "ls -lA"
 RUN "find ."
