@@ -134,12 +134,12 @@ public class PokerUI extends UI implements Serializable, View {
         toggleVotesVisible.addClickListener(event -> PokerService.toggleVotes(session));
 
         resetVotes.addClickListener(event -> {
-            ConfirmationDialogue confirm = new ConfirmationDialogue(session, PokerService :: resetVotes);
+            ConfirmationDialogue confirm = new ConfirmationDialogue(resetVotes, session, PokerService :: resetVotes);
             UI.getCurrent().addWindow(confirm);
         });
 
         togglePlayersVisible.addClickListener(event -> {
-            ConfirmationDialogue confirm = new ConfirmationDialogue(session, PokerService :: togglePlayersVisible);
+            ConfirmationDialogue confirm = new ConfirmationDialogue(togglePlayersVisible, session, PokerService :: togglePlayersVisible);
             confirm.setModal(true);
             UI.getCurrent().addWindow(confirm);
         });
@@ -195,6 +195,7 @@ public class PokerUI extends UI implements Serializable, View {
 
         Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayer().getHideable(player), new HtmlRenderer());
         Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(VoteDTO :: getHideable, new HtmlRenderer());
+
         playerNameColumn.setWidthUndefined();
         playerNameColumn.setCaption("Player");
         playerNameColumn.setResizable(false);
@@ -204,8 +205,8 @@ public class PokerUI extends UI implements Serializable, View {
 
         votesGrid.addItemClickListener(e -> {
             MouseEventDetails click = e.getMouseEventDetails();
-            if (click.isAltKey() && click.isShiftKey()) {
-                ConfirmationDialogue confirm = new ConfirmationDialogue(e.getItem().getPlayer(), PokerService :: removePlayer);
+            if (session.getOwner() == this.player && click.isAltKey() && click.isShiftKey()) {
+                ConfirmationDialogue confirm = new ConfirmationDialogue("Remove this player", e.getItem().getPlayer(), PokerService :: removePlayer);
                 UI.getCurrent().addWindow(confirm);
             }
         });

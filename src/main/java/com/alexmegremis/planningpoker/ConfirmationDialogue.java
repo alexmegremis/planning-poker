@@ -6,8 +6,8 @@ import java.util.function.Consumer;
 
 public class ConfirmationDialogue extends Window {
 
-    public <T> ConfirmationDialogue(T value, Consumer<T> consumer) {
-        super("Are you sure?");
+    public <T> ConfirmationDialogue(final String message, final T value, final Consumer<T> consumer) {
+        super(message + " - Are you sure?");
         center();
         setClosable(false);
         Button yes = new Button("Yes", event -> {
@@ -22,5 +22,9 @@ public class ConfirmationDialogue extends Window {
         setDraggable(false);
         setContent(buttons);
         setWidth("20em");
+
+    }
+    public <T> ConfirmationDialogue(final Component owner, final T value, final Consumer<T> consumer) {
+        this(owner.getCaption(), value, consumer);
     }
 }
