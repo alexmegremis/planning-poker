@@ -4,6 +4,8 @@ import com.alexmegremis.planningpoker.PokerService;
 import com.alexmegremis.planningpoker.SessionDTO;
 import com.google.gson.*;
 import com.vaadin.spring.annotation.SpringComponent;
+import lombok.AccessLevel;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -17,9 +19,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.netty.http.client.HttpClient;
 
+import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
 
@@ -30,20 +35,47 @@ public class JiraService {
 
     public static final String TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
-    @Value ("${jira.scheme}")
-    private String jiraScheme;
     @Value ("${jira.hostname}")
+    @Setter(AccessLevel.PRIVATE)
     private String jiraHostname;
     @Value ("${jira.port}")
+    @Setter(AccessLevel.PRIVATE)
     private String jiraPort;
+    @Value ("${jira.scheme}")
+    @Setter(AccessLevel.PRIVATE)
+    private String jiraScheme;
     @Value ("${jira.issueAPI}")
+    @Setter(AccessLevel.PRIVATE)
     private String issueAPI;
     @Value ("${jira.uac.fieldname}")
+    @Setter(AccessLevel.PRIVATE)
     private String fieldNameUAC;
     @Value ("${jira.user}")
+    @Setter(AccessLevel.PRIVATE)
     private String user;
     @Value ("${jira.pass}")
+    @Setter(AccessLevel.PRIVATE)
     private String pass;
+
+    @PostConstruct
+    private void externalInit() {
+        getEnvVarAndLog("JIRA_HOSTNAME", this :: setJiraHostname);
+        getEnvVarAndLog("JIRA_PORT", this :: setJiraPort);
+        getEnvVarAndLog("JIRA_SCHEME", this :: setJiraScheme);
+        getEnvVarAndLog("JIRA_ISSUEAPI", this :: setIssueAPI);
+        getEnvVarAndLog("JIRA_UAC_FIELDNAME", this :: setFieldNameUAC);
+        getEnvVarAndLog("JIRA_USER", this :: setUser);
+        getEnvVarAndLog("JIRA_PASS", this :: setPass);
+    }
+    private void getEnvVarAndLog(final String varName, final Consumer<String> setter) {
+        String result = System.getenv(varName);
+        log.info(">>> Finding env var value for {}, found {}", varName, result);
+        if(StringUtils.hasLength(result)) {
+            log.info(">>> Setting override for {} with value {}", varName, result);
+            setter.accept(result);
+        }
+    }
+
 
     public void getIssueByKey(final PokerService pokerService, final SessionDTO session, final String issueKey) {
 
