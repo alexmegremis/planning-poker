@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.alexmegremis</groupId>
     <artifactId>planning-poker</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>planning-poker</name>
     <description>PlanningPoker-nator</description>
 
