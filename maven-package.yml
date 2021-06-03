@@ -23,4 +23,4 @@ run:
   args:
   - -c
   - |
-    mvn clean package jib:build -DskipTests -Dspring-boot.build-image.imageName=dreg.aamegremis.com/alexmegremis/planning-poker -B -f planning-poker/pom.xml -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    mvn clean package jib:buildTar -DskipTests -Djib.outputPaths.tar=$(pwd)/image/planning-poker.tar -B -f planning-poker/pom.xml -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn

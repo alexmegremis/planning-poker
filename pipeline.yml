@@ -45,7 +45,7 @@ resources:
         uesvo3xYGH8PJ9AAAAGGFsZXhtZWdyZW1pc0BQRUFSTC5sb2NhbAEC
         -----END OPENSSH PRIVATE KEY-----
   - name: image
-    type: docker-image
+    type: registry-image
     icon: docker
     source:
       repository: ((image-name))
@@ -62,4 +62,4 @@ jobs:
     - task: maven-package
       file: planning-poker/maven-package.yml
     - put: image
-      params: {build: planning-poker}
+      params: {image: image/planning-poker.tar}
