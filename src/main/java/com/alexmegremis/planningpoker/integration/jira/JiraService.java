@@ -51,7 +51,7 @@ public class JiraService {
                                                                         .scheme(jiraScheme)
                                                                         .host(jiraHostname)
                                                                         .port(jiraPort)
-                                                                        .queryParam("fields", "description,summary,created,creator,assignee,labels," + fieldNameUAC);
+                                                                        .queryParam("fields", "description,summary,created,updated,creator,assignee,labels," + fieldNameUAC);
 
         Arrays.stream(issueAPI.split("/")).forEach(uriComponentsBuilder :: pathSegment);
         uriComponentsBuilder.pathSegment(issueKey);
@@ -75,12 +75,8 @@ public class JiraService {
 
         final JsonObject fields = root.getAsJsonObject("fields");
 
-        Calendar created       = null;
-        String   createdAsText = getJsonValueSafe(fields, "created");
-        if (! StringUtils.isEmpty(createdAsText)) {
-            created = Calendar.getInstance();
-            created.setTime(fromTimeString(createdAsText));
-        }
+        Calendar created = parseTimestamp(fields, "created");
+        Calendar updated = parseTimestamp(fields, "updated");
 
         List<String> labels = new ArrayList<>();
         fields.getAsJsonArray("labels").forEach(l -> labels.add(l.getAsString()));
@@ -94,9 +90,20 @@ public class JiraService {
                              .assignee(createIssuePerson(fields.get("assignee").getAsJsonObject()))
                              .creator(createIssuePerson(fields.get("creator").getAsJsonObject()))
                              .created(created)
+                             .updated(updated)
                              .labels(labels)
                              .build();
 
+        return result;
+    }
+
+    private Calendar parseTimestamp(final JsonObject fields, final String timestampName) {
+        final String timestampAsText = getJsonValueSafe(fields, timestampName);
+        Calendar     result          = null;
+        if (StringUtils.hasLength(timestampAsText)) {
+            result = Calendar.getInstance();
+            result.setTime(fromTimeString(timestampAsText));
+        }
         return result;
     }
 

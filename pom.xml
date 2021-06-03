@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.4.6</version>
+        <version>2.5.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.alexmegremis</groupId>
@@ -102,24 +102,17 @@
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                 </configuration>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>com.google.cloud.tools</groupId>-->
-<!--                <artifactId>jib-maven-plugin</artifactId>-->
-<!--                <version>3.0.0</version>-->
-<!--                <configuration>-->
-<!--                    <to>-->
-<!--                        <image>dreg.aamegremis.com/alexmegremis/planning-poker</image>-->
-<!--                    </to>-->
-<!--                    <extraDirectories>-->
-<!--                        <paths>-->
-<!--                            <from>${project.basedir}/src/main/webapp/VAADIN/themes/mytheme</from>-->
-<!--                            <to>/app/resources/webapp</to>-->
-<!--                        </paths>-->
-<!--                    </extraDirectories>-->
-<!--&lt;!&ndash;                    <containerizingMode>packaged</containerizingMode>&ndash;&gt;-->
-<!--                    <allowInsecureRegistries>true</allowInsecureRegistries>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <to>
+                        <image>dreg.aamegremis.com/alexmegremis/planning-poker</image>
+                    </to>
+                    <allowInsecureRegistries>true</allowInsecureRegistries>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

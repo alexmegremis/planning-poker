@@ -24,14 +24,16 @@ public class IssueView extends VerticalLayout {
 
     private JiraIssueDTO jiraIssue;
 
-    private final TextField     issueSummary     = new TextField("Summary");
-    private final TextArea      issueDescription = new TextArea("Description");
-    private final TextArea      issueUAC         = new TextArea("UAC");
-    private final TextField     inputIssueKey    = new TextField("Issue Key");
-    private final TextField     issueCreator     = new TextField("Reporter");
-    private final TextField     issueAssignee    = new TextField("Assignee");
-    private final DateTimeField issueCreated     = new DateTimeField("Created");
-    private final Button        buttonFindIssue  = new Button("Find");
+    private final TextArea  issueSummary     = new TextArea("Summary");
+    private final TextArea  issueDescription = new TextArea("Description");
+    private final TextArea  issueUAC         = new TextArea("UAC");
+    private final TextField inputIssueKey    = new TextField("Issue Key");
+    private final TextField issueCreator     = new TextField("Reported By");
+    private final TextField issueAssignee    = new TextField("Assignee");
+    private final Button    buttonFindIssue  = new Button("Find");
+
+    private final DateTimeField issueCreated = new DateTimeField("Created");
+    private final DateTimeField issueUpdated = new DateTimeField("Updated");
 
     private final FormLayout issueForm = new FormLayout(inputIssueKey, buttonFindIssue);
 
@@ -44,14 +46,21 @@ public class IssueView extends VerticalLayout {
         issueDescription.setReadOnly(true);
         issueUAC.setReadOnly(true);
         issueAssignee.setReadOnly(true);
+
         issueCreator.setReadOnly(true);
+
         issueCreated.setReadOnly(true);
+        issueUpdated.setReadOnly(true);
+        HorizontalLayout datesLayout = new HorizontalLayout();
+        datesLayout.addComponents(issueCreated, issueUpdated);
 
         issueForm.setMargin(false);
         issueForm.setSpacing(true);
         issueForm.setDescription("Find Issue", ContentMode.TEXT);
 
         issueSummary.setWidthFull();
+        issueSummary.setResponsive(true);
+        issueSummary.setRows(2);
 
         issueDescription.setHeightUndefined();
         issueDescription.setWidthFull();
@@ -75,7 +84,7 @@ public class IssueView extends VerticalLayout {
 
         labelsContainer.addComponents(new Label("Labels"), labelsLayout);
 
-        addComponents(issueForm, labelsLayout, issueSummary, issueDescription, issueUAC, issueCreated, issueCreator, issueAssignee);
+        addComponents(issueForm, labelsLayout, issueSummary, issueDescription, issueUAC, datesLayout, issueCreator, issueAssignee);
     }
 
     public void init(final PokerService pokerService, final JiraService jiraService, final SessionDTO session) {
@@ -118,6 +127,9 @@ public class IssueView extends VerticalLayout {
                 if (jiraIssue.getCreated() != null) {
                     issueCreated.setValue(LocalDateTime.ofInstant(jiraIssue.getCreated().toInstant(), jiraIssue.getCreated().getTimeZone().toZoneId()));
                 }
+                if (jiraIssue.getUpdated() != null) {
+                    issueUpdated.setValue(LocalDateTime.ofInstant(jiraIssue.getUpdated().toInstant(), jiraIssue.getUpdated().getTimeZone().toZoneId()));
+                }
             }
         }
     }
@@ -130,7 +142,7 @@ public class IssueView extends VerticalLayout {
     }
 
     private void setIfNotNull(String value, Consumer<String> consumer) {
-        if (! StringUtils.isEmpty(value)) {
+        if (StringUtils.hasLength(value)) {
             consumer.accept(value);
         } else {
             consumer.accept("");

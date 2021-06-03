@@ -22,7 +22,7 @@ public class PokerService {
     private static final List<PlayerDTO>  players  = new CopyOnWriteArrayList<>();
     private static final List<SessionDTO> sessions = new CopyOnWriteArrayList<>();
     @Autowired
-    private JiraService jiraService;
+    private              JiraService      jiraService;
 
     public static String getVoteResults(final SessionDTO session) {
 
@@ -55,26 +55,33 @@ public class PokerService {
     }
 
     public static void toggleVotes(final SessionDTO session) {
-        session.setShowVotes(!session.getShowVotes());
-        session.getVotes().forEach(v -> v.setHidden(!session.getShowVotes()));
-        session.updateLastModificationTimestamp();
-    }
-    public static void hideVotes(final SessionDTO session) {
-        session.setShowVotes(false);
-        session.getVotes().forEach(v -> v.setHidden(!session.getShowVotes()));
+        session.setShowVotes(! session.getShowVotes());
+        session.getVotes().forEach(v -> v.setHidden(! session.getShowVotes()));
         session.updateLastModificationTimestamp();
     }
 
-    public static void togglePlayers(final SessionDTO session) {
-        session.setShowPlayers(!session.getShowPlayers());
-        session.getPlayers().forEach(p -> p.setHidden(!session.getShowPlayers()));
+    public static void hideVotes(final SessionDTO session) {
+        session.setShowVotes(false);
+        session.getVotes().forEach(v -> v.setHidden(! session.getShowVotes()));
+        session.updateLastModificationTimestamp();
+    }
+
+    public static void togglePlayersVisible(final SessionDTO session) {
+        session.setShowPlayers(! session.getShowPlayers());
+        session.getPlayers().forEach(p -> p.setHidden(! session.getShowPlayers()));
+        session.updateLastModificationTimestamp();
+    }
+
+    public static void toggleVotingOpen(final SessionDTO session) {
+        session.setVotingOpen(! session.getVotingOpen());
         session.updateLastModificationTimestamp();
     }
 
     public static void resetVotes(final SessionDTO session) {
         session.getPlayers().forEach(p -> PokerService.vote(session, p, ""));
         session.setShowVotes(false);
-        session.getVotes().forEach(v -> v.setHidden(!session.getShowVotes()));
+        session.setVotingOpen(false);
+        session.getVotes().forEach(v -> v.setHidden(! session.getShowVotes()));
         session.updateLastModificationTimestamp();
     }
 
@@ -88,7 +95,7 @@ public class PokerService {
 
     public SessionDTO createSession(final String sessionName) {
         String     sessionId = String.valueOf(getUniqueId(new ArrayList<>(sessions)));
-        SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).showPlayers(false).build();
+        SessionDTO result    = SessionDTO.builder().id(sessionId).name(sessionName).showVotes(false).votingOpen(false).showPlayers(false).build();
         sessions.add(result);
 
         return result;

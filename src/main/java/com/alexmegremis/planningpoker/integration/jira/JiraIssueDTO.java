@@ -21,6 +21,7 @@ public class JiraIssueDTO {
     private String       summary;
     private String       UAC;
     private Calendar     created;
+    private Calendar     updated;
     private Person       creator;
     private Person       assignee;
     private List<String> labels;

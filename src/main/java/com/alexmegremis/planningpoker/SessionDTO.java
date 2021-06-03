@@ -30,6 +30,9 @@ public class SessionDTO implements Identifiable, Serializable {
     @Setter
     private       Boolean      showPlayers;
     @Getter
+    @Setter
+    private       Boolean      votingOpen;
+    @Getter
     private       JiraIssueDTO jiraIssue;
     @Getter
     private final PokerUI      pokerUI;
