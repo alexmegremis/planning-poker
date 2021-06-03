@@ -157,6 +157,7 @@ public class PokerUI extends UI implements Serializable, View {
 
     private void toggleVotingButtons() {
         voteButtons.forEach(b -> b.setEnabled(session.getVotingOpen()));
+//        log.debug(">>> Player: {} have set {} voting buttons to {}", voteButtons.size(), player.getName(), session.getVotingOpen());
     }
 
     @Override
@@ -260,7 +261,7 @@ public class PokerUI extends UI implements Serializable, View {
 
             this.issueView.setJiraIssue(session.getJiraIssue());
 
-            this.toggleVotingButtons();
+            this.access(this :: toggleVotingButtons);
             toggleVoting.setCaption(session.getVotingOpen() ? "Close voting" : "Open voting");
         }
     }
@@ -298,7 +299,7 @@ public class PokerUI extends UI implements Serializable, View {
     private void populateVotes() {
         votes.clear();
         votes.addAll(session.getVotes());
-        log.info(">>> updating {} votes for {}, for {}", votes.size(), session.getId(), player.getHideableValue());
+//        log.info(">>> updating {} votes for {}, for {}", votes.size(), session.getId(), player.getHideableValue());
         this.access(() -> {
             votesGrid.setItems(votes);
             votesGrid.getDataProvider().refreshAll();
