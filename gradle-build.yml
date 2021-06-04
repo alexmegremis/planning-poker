@@ -27,4 +27,4 @@ run:
 
       cd planning-poker
 
-      gradle clean jibBuildTar -DskipTests -Djib.outputPaths.tar=$(pwd)/image/planning-poker.tar -B -f planning-poker/pom.xml -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      gradle clean jibBuildTar -DskipTests -Djib.outputPaths.tar=$(pwd)/image/planning-poker.tar

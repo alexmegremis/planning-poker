@@ -1,48 +1,50 @@
 plugins {
-	id 'org.springframework.boot' version '2.4.6'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'com.google.cloud.tools.jib' version '3.0.0'
-	id 'java'
+    id 'org.springframework.boot' version '2.4.6'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'com.google.cloud.tools.jib' version '3.0.0'
+    id 'java'
 }
 
 group = 'com.alexmegremis'
 version = '0.0.2-SNAPSHOT'
 sourceCompatibility = '8'
-jib.outputPaths = "$(pwd)/image/planning-poker.tar"
+//jib.outputPaths = "$rootDir/image/planning-poker.tar"
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 ext {
-	set('vaadinVersion', "8.13.1")
+    set('vaadinVersion', "8.13.1")
 }
 
+jib.to.image = 'dreg.aamegremis.com/alexmegremis/planning-poker:v0.0.2'
+
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'com.vaadin:vaadin-spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux:2.5.0'
-	implementation 'com.vaadin:vaadin-spring-boot-starter:3.2.1'
-	implementation "com.vaadin:vaadin-push:${vaadinVersion}"
-	implementation 'com.google.code.gson:gson:2.8.7'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'com.vaadin:vaadin-spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux:2.5.0'
+    implementation 'com.vaadin:vaadin-spring-boot-starter:3.2.1'
+    implementation "com.vaadin:vaadin-push:${vaadinVersion}"
+    implementation 'com.google.code.gson:gson:2.8.7'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 dependencyManagement {
-	imports {
-		mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
-	}
+    imports {
+        mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
+    }
 }
 
 test {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

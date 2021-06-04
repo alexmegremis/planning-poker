@@ -1,10 +1,10 @@
 resources:
-  - name: planning-poker
+  - name: planning-poker-gradle
     icon: github
     type: git
     source:
       uri: git@gitlab02.pve.aamegremis.com:alexmegremis/poker-planning.git
-      branch: master
+      branch: gradle_build
       private_key: |
         -----BEGIN OPENSSH PRIVATE KEY-----
         b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
