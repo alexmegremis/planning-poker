@@ -1,13 +1,14 @@
 plugins {
 	id 'org.springframework.boot' version '2.4.6'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-//	id 'com.vaadin' version '0.14.3.7'
+	id 'com.google.cloud.tools.jib' version '3.0.0'
 	id 'java'
 }
 
 group = 'com.alexmegremis'
 version = '0.0.2-SNAPSHOT'
 sourceCompatibility = '8'
+jib.outputPaths = "$(pwd)/image/planning-poker.tar"
 
 configurations {
 	compileOnly {
