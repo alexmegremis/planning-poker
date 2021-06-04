@@ -15,10 +15,6 @@ public class VoteDTO extends Hideable implements Serializable {
     @Getter
     private String     privateVote;
 
-    public PlayerDTO getPlayer() {
-        return player;
-    }
-
     public void vote(final String vote) {
         privateVote = vote;
         hide();

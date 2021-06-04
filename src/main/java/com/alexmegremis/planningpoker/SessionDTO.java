@@ -13,6 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Builder
 public class SessionDTO implements Identifiable, Serializable {
 
+    @Builder.Default
     private Long lastModificationTimestamp = Instant.now().toEpochMilli();
 
     public synchronized Long getLastModificationTimestamp() {
