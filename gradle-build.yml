@@ -27,4 +27,4 @@ run:
 
       cd planning-poker
 
-      gradle --no-daemon clean jibBuildTar -DskipTests -Djib.outputPaths.tar=/tmp/planning-poker.tar
+      gradle clean jibBuildTar -DskipTests -Djib.outputPaths.tar=/tmp/planning-poker.tar
