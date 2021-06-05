@@ -62,4 +62,4 @@ jobs:
     - task: gradle-package
       file: planning-poker/gradle-build.yml
     - put: image
-      params: { image: ./image/planning-poker.tar }
+      params: { image: image/planning-poker.tar }
