@@ -28,7 +28,6 @@ jib.to.image = 'dreg.aamegremis.com/alexmegremis/planning-poker:v0.0.2'
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'com.vaadin:vaadin-spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-webflux:2.5.0'
     implementation 'com.vaadin:vaadin-spring-boot-starter:3.2.1'
     implementation "com.vaadin:vaadin-push:${vaadinVersion}"
