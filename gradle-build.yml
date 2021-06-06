@@ -1,0 +1,30 @@
+---
+platform: linux
+container_limits: { }
+
+image_resource:
+  type: registry-image
+  source:
+    repository: gradle
+    tag: 7-jdk16
+
+# Caches are scoped to a particular task name inside of a pipeline's job.
+caches:
+  - path: $HOME/.gradle/caches/
+  - path: $HOME/.gradle/wrapper/
+
+inputs:
+  - name: planning-poker
+
+outputs:
+  - name: image # Concourse creates this directory for us. This will hold the OCI image .tar
+
+run:
+  path: /bin/sh
+  args:
+    - -c
+    - |
+
+      cd planning-poker
+
+      gradle --no-watch-fs clean jibBuildTar -DskipTests -Djib.outputPaths.tar=$(pwd)/../image/planning-poker.tar

@@ -4,7 +4,7 @@ resources:
     type: git
     source:
       uri: git@gitlab02.pve.aamegremis.com:alexmegremis/poker-planning.git
-      branch: master
+      branch: gradle_build
       private_key: |
         -----BEGIN OPENSSH PRIVATE KEY-----
         b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
@@ -59,7 +59,7 @@ jobs:
     plan:
     - get: planning-poker
       trigger: true
-    - task: maven-package
-      file: planning-poker/maven-package.yml
+    - task: gradle-package
+      file: planning-poker/gradle-build.yml
     - put: image
       params: {image: image/planning-poker.tar}
