@@ -52,8 +52,6 @@ public class SessionDTO implements Identifiable, Serializable {
         if (this.owner == null) {
             this.owner = player;
         }
-        PokerService.vote(this, player, "");
-        updateLastModificationTimestamp();
     }
 
     public void removePlayer(final PlayerDTO player) {
@@ -63,7 +61,6 @@ public class SessionDTO implements Identifiable, Serializable {
                 votes.remove(v);
             }
         });
-        updateLastModificationTimestamp();
     }
 
     public boolean voteInSession(final PlayerDTO player, final String vote) {
@@ -79,14 +76,12 @@ public class SessionDTO implements Identifiable, Serializable {
                 votes.add(newVote);
                 log.info(">>> {} voted {} - new", player.getName(), vote);
             }
-            updateLastModificationTimestamp();
         }
         return result;
     }
 
     public void setJiraIssue(final JiraIssueDTO jiraIssue) {
         this.jiraIssue = jiraIssue;
-        updateLastModificationTimestamp();
     }
 
     public void updateLastModificationTimestamp() {

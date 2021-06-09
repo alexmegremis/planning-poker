@@ -24,7 +24,6 @@ import java.util.*;
 import static com.vaadin.ui.Grid.Column;
 
 @Slf4j
-//@Theme ("mytheme")
 @PreserveOnRefresh
 @Push (PushMode.AUTOMATIC)
 @SpringUI
@@ -83,7 +82,7 @@ public class PokerUI extends UI implements Serializable, View {
     @Override
     public void enter(final ViewChangeEvent event) {
         String               param   = event.getParameters().trim();
-        Optional<SessionDTO> session = PokerService.findSession(param);
+        Optional<SessionDTO> session = pokerService.findSession(param);
         session.ifPresent(this :: setSession);
     }
 
@@ -97,7 +96,7 @@ public class PokerUI extends UI implements Serializable, View {
         Button result = new Button(caption);
         result.setWidth("5em");
         result.addClickListener(event -> {
-            boolean didVote = PokerService.vote(session, player, caption);
+            boolean didVote = pokerService.vote(session, player, caption);
             if (! didVote) {
                 this.detach();
             }
@@ -131,21 +130,21 @@ public class PokerUI extends UI implements Serializable, View {
         addToVotingGrid(votingGridLayout, getSpacer());
         addToVotingGrid(votingGridLayout, togglePlayersVisible);
 
-        toggleVotesVisible.addClickListener(event -> PokerService.toggleVotes(session));
+        toggleVotesVisible.addClickListener(event -> pokerService.toggleVotes(session));
 
         resetVotes.addClickListener(event -> {
-            ConfirmationDialogue confirm = new ConfirmationDialogue(resetVotes, session, PokerService :: resetVotes);
+            ConfirmationDialogue confirm = new ConfirmationDialogue(resetVotes, session, pokerService :: resetVotes);
             UI.getCurrent().addWindow(confirm);
         });
 
         togglePlayersVisible.addClickListener(event -> {
-            ConfirmationDialogue confirm = new ConfirmationDialogue(togglePlayersVisible, session, PokerService :: togglePlayersVisible);
+            ConfirmationDialogue confirm = new ConfirmationDialogue(togglePlayersVisible, session, pokerService :: togglePlayersVisible);
             confirm.setModal(true);
             UI.getCurrent().addWindow(confirm);
         });
 
         toggleVoting.addClickListener(event -> {
-            PokerService.toggleVotingOpen(session);
+            pokerService.toggleVotingOpen(session);
         });
 
         votesResults.setReadOnly(true);
@@ -185,7 +184,7 @@ public class PokerUI extends UI implements Serializable, View {
 
     private void processParams() {
         String               uriSessionId = Page.getCurrent().getUriFragment();
-        Optional<SessionDTO> session      = PokerService.findSession(uriSessionId);
+        Optional<SessionDTO> session      = pokerService.findSession(uriSessionId);
         session.ifPresent(this :: setSession);
     }
 
@@ -206,7 +205,7 @@ public class PokerUI extends UI implements Serializable, View {
         votesGrid.addItemClickListener(e -> {
             MouseEventDetails click = e.getMouseEventDetails();
             if (session.getOwner() == this.player && click.isAltKey() && click.isShiftKey()) {
-                ConfirmationDialogue confirm = new ConfirmationDialogue("Remove this player", e.getItem().getPlayer(), PokerService :: removePlayer);
+                ConfirmationDialogue confirm = new ConfirmationDialogue("Remove this player", e.getItem().getPlayer(), pokerService :: removePlayer);
                 UI.getCurrent().addWindow(confirm);
             }
         });
@@ -252,7 +251,7 @@ public class PokerUI extends UI implements Serializable, View {
             if (latestSessionTimestamp != null && ! latestSessionTimestamp.equals(knownSessionTimestamp)) {
                 knownSessionTimestamp = latestSessionTimestamp;
                 populateVotes();
-                this.access(() -> this.votesResults.setValue(PokerService.getVoteResults(session)));
+                this.access(() -> this.votesResults.setValue(pokerService.getVoteResults(session)));
             }
 
             if (playerCount != session.getPlayers().size()) {
@@ -282,7 +281,7 @@ public class PokerUI extends UI implements Serializable, View {
     @Override
     public void detach() {
         this.detached = true;
-        PokerService.removePlayer(player);
+        pokerService.removePlayer(player);
         log.info(">>> player {} has detached", player.getName());
         player = null;
         PokerUI.allUIs.remove(this);
@@ -315,7 +314,7 @@ public class PokerUI extends UI implements Serializable, View {
         this.labelPlayerNameValue.setValue(player.getName());
 
         if (this.session != null) {
-            session.addPlayer(player);
+            pokerService.addPlayer(player, session);
             readyToUse();
         }
 
@@ -329,7 +328,7 @@ public class PokerUI extends UI implements Serializable, View {
         this.knownSessionTimestamp = session.getLastModificationTimestamp();
 
         if (player != null) {
-            session.addPlayer(player);
+            pokerService.addPlayer(player, session);
             readyToUse();
         }
 

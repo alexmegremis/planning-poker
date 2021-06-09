@@ -37,7 +37,7 @@ public class SessionForm extends FormLayout {
     }
 
     private void find() {
-        Optional<SessionDTO> session = PokerService.findSession(this.sessionIdInput.getValue().trim());
+        Optional<SessionDTO> session = pokerService.findSession(this.sessionIdInput.getValue().trim());
         if(session.isPresent()) {
             this.sessionIdInput.clear();
             pokerUI.setSession(session.get());
