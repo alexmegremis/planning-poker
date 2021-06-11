@@ -52,9 +52,9 @@ public class PokerUI extends UI implements Serializable, View {
     private       IssueView issueView;
     private final TextField votesResults = new TextField("Results");
 
-    private final List<VoteDTO> votes     = new ArrayList<>();
-    private final List<Button> voteButtons = new ArrayList<>();
-    private final Grid<VoteDTO> votesGrid = new Grid<>();
+    private final List<VoteDTO> votes       = new ArrayList<>();
+    private final List<Button>  voteButtons = new ArrayList<>();
+    private final Grid<VoteDTO> votesGrid   = new Grid<>();
 
     private GridLayout votingGridLayout;
 
@@ -86,23 +86,97 @@ public class PokerUI extends UI implements Serializable, View {
         session.ifPresent(this :: setSession);
     }
 
-    private Label getSpacer() {
-        final Label spacer = new Label("&nbsp;", ContentMode.HTML);
-        spacer.setWidth("1em");
-        return spacer;
+    private void toggleVotingButtons() {
+        voteButtons.forEach(b -> b.setEnabled(session.getVotingOpen()));
+//        log.debug(">>> Player: {} have set {} voting buttons to {}", voteButtons.size(), player.getName(), session.getVotingOpen());
     }
 
-    private Button getVoteButton(final String caption) {
-        Button result = new Button(caption);
-        result.setWidth("5em");
-        result.addClickListener(event -> {
-            boolean didVote = pokerService.vote(session, player, caption);
-            if (! didVote) {
-                this.detach();
+    @Override
+    protected void init(final VaadinRequest vaadinRequest) {
+
+        PokerUI.allUIs.add(this);
+
+        initUIs();
+        processParams();
+        setState();
+
+        doRefresh();
+    }
+
+    private void setState() {
+
+        if (! detached) {
+            playerForm.setVisible(player == null);
+            sessionForm.setVisible(player != null && session == null);
+            votesLayout.setVisible(player != null && session != null);
+            issueView.setVisible(votesLayout.isVisible());
+            sessionDetailsLayout.setVisible(votesLayout.isVisible());
+        }
+    }
+
+    private void processParams() {
+        String               uriSessionId = Page.getCurrent().getUriFragment();
+        Optional<SessionDTO> session      = pokerService.findSession(uriSessionId);
+        session.ifPresent(this :: setSession);
+    }
+
+    private void initUIs() {
+
+        // Player entrance
+        this.sessionForm = new SessionForm(this, pokerService, session);
+        this.playerForm = new PlayerForm(this, pokerService);
+
+        initVotesGridLayout();
+        initVotingGridLayout();
+        initSessionDetailsLayout();
+
+        this.issueView = createIssueView();
+
+        votesLayout.addComponents(votesGrid, votingGridLayout, issueView);
+        votesLayout.setExpandRatio(issueView, 0.65f);
+        votesLayout.setSpacing(true);
+        votesLayout.setWidthFull();
+        votesLayout.setHeightUndefined();
+
+        sessionDetailsLayout.setHeight("6em");
+        sessionDetailsLayout.setWidth("25em");
+
+        pokerLayout.addComponents(playerForm, sessionForm, sessionDetailsLayout, votesLayout);
+
+        this.setContent(pokerLayout);
+    }
+
+    private void initSessionDetailsLayout() {
+
+        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(), labelSessionIdValue, getSpacer(), labelPlayerCount, getSpacer(), labelPlayerCountValue,
+
+                                           labelSessionName, getSpacer(), labelSessionNameValue, getSpacer(), labelPlayerName, getSpacer(), labelPlayerNameValue);
+
+        labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
+        labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);
+        labelPlayerCountValue.setContentMode(ContentMode.PREFORMATTED);
+        labelPlayerNameValue.setContentMode(ContentMode.PREFORMATTED);
+    }
+
+    private void initVotesGridLayout() {
+        // Votes table
+        Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayer().getHideable(player), new HtmlRenderer());
+        Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(VoteDTO :: getHideable, new HtmlRenderer());
+
+        playerNameColumn.setWidthUndefined();
+        playerNameColumn.setCaption("Player");
+        playerNameColumn.setResizable(false);
+        voteValueColumn.setWidth(100);
+        voteValueColumn.setCaption("Vote");
+        voteValueColumn.setResizable(false);
+
+        votesGrid.addItemClickListener(e -> {
+            MouseEventDetails click = e.getMouseEventDetails();
+            if (session.getOwner() == this.player && click.isAltKey() && click.isShiftKey()) {
+                ConfirmationDialogue confirm = new ConfirmationDialogue("Remove this player", e.getItem().getPlayer(), pokerService :: removePlayer);
+                UI.getCurrent().addWindow(confirm);
             }
         });
-        voteButtons.add(result);
-        return result;
     }
 
     private void initVotingGridLayout() {
@@ -147,6 +221,9 @@ public class PokerUI extends UI implements Serializable, View {
             pokerService.toggleVotingOpen(session);
         });
 
+        votingGridLayout.setWidthUndefined();
+        votingGridLayout.setHeightUndefined();
+
         votesResults.setReadOnly(true);
     }
 
@@ -154,91 +231,29 @@ public class PokerUI extends UI implements Serializable, View {
         layout.addComponent(component, 0, layout.getCursorY(), 1, layout.getCursorY());
     }
 
-    private void toggleVotingButtons() {
-        voteButtons.forEach(b -> b.setEnabled(session.getVotingOpen()));
-//        log.debug(">>> Player: {} have set {} voting buttons to {}", voteButtons.size(), player.getName(), session.getVotingOpen());
+    private Label getSpacer() {
+        final Label spacer = new Label("&nbsp;", ContentMode.HTML);
+        spacer.setWidth("1em");
+        return spacer;
     }
 
-    @Override
-    protected void init(final VaadinRequest vaadinRequest) {
-
-        PokerUI.allUIs.add(this);
-
-        initUIs();
-        processParams();
-        setState();
-
-        doRefresh();
-    }
-
-    private void setState() {
-
-        if (! detached) {
-            playerForm.setVisible(player == null);
-            sessionForm.setVisible(player != null && session == null);
-            votesLayout.setVisible(player != null && session != null);
-            issueView.setVisible(votesLayout.isVisible());
-            sessionDetailsLayout.setVisible(votesLayout.isVisible());
-        }
-    }
-
-    private void processParams() {
-        String               uriSessionId = Page.getCurrent().getUriFragment();
-        Optional<SessionDTO> session      = pokerService.findSession(uriSessionId);
-        session.ifPresent(this :: setSession);
-    }
-
-    private void initUIs() {
-        this.sessionForm = new SessionForm(this, pokerService, session);
-        this.playerForm = new PlayerForm(this, pokerService);
-
-        Column<VoteDTO, String> playerNameColumn = votesGrid.addColumn(v -> v.getPlayer().getHideable(player), new HtmlRenderer());
-        Column<VoteDTO, String> voteValueColumn  = votesGrid.addColumn(VoteDTO :: getHideable, new HtmlRenderer());
-
-        playerNameColumn.setWidthUndefined();
-        playerNameColumn.setCaption("Player");
-        playerNameColumn.setResizable(false);
-        voteValueColumn.setWidth(100);
-        voteValueColumn.setCaption("Vote");
-        voteValueColumn.setResizable(false);
-
-        votesGrid.addItemClickListener(e -> {
-            MouseEventDetails click = e.getMouseEventDetails();
-            if (session.getOwner() == this.player && click.isAltKey() && click.isShiftKey()) {
-                ConfirmationDialogue confirm = new ConfirmationDialogue("Remove this player", e.getItem().getPlayer(), pokerService :: removePlayer);
-                UI.getCurrent().addWindow(confirm);
+    private Button getVoteButton(final String caption) {
+        Button result = new Button(caption);
+        result.setWidth("5em");
+        result.addClickListener(event -> {
+            boolean didVote = pokerService.vote(session, player, caption);
+            if (! didVote) {
+                this.detach();
             }
         });
-
-        initVotingGridLayout();
-        votingGridLayout.setWidthUndefined();
-        votingGridLayout.setHeightUndefined();
-
-        this.issueView = createIssueView();
-        issueView.setWidthFull();
-        issueView.setHeightUndefined();
-
-        initSessionDetailsDisplay();
-        votesLayout.addComponents(votesGrid, votingGridLayout, issueView);
-        votesLayout.setExpandRatio(issueView, 0.65f);
-        votesLayout.setSpacing(true);
-        votesLayout.setWidthFull();
-        votesLayout.setHeightUndefined();
-
-        sessionDetailsLayout.setHeight("6em");
-        sessionDetailsLayout.setWidth("25em");
-        votesLayout.setWidthFull();
-        votesLayout.setHeightUndefined();
-
-        pokerLayout.addComponents(playerForm, sessionForm, sessionDetailsLayout, votesLayout);
-
-        this.setContent(pokerLayout);
+        voteButtons.add(result);
+        return result;
     }
 
     private IssueView createIssueView() {
         IssueView result = new IssueView();
         result.setMargin(false);
-        result.setWidthUndefined();
+        result.setWidthFull();
         result.setHeightUndefined();
 
         return result;
@@ -264,18 +279,6 @@ public class PokerUI extends UI implements Serializable, View {
             this.access(this :: toggleVotingButtons);
             toggleVoting.setCaption(session.getVotingOpen() ? "Close voting" : "Open voting");
         }
-    }
-
-    private void initSessionDetailsDisplay() {
-
-        sessionDetailsLayout.addComponents(labelSessionId, getSpacer(), labelSessionIdValue, getSpacer(), labelPlayerCount, getSpacer(), labelPlayerCountValue,
-
-                                           labelSessionName, getSpacer(), labelSessionNameValue, getSpacer(), labelPlayerName, getSpacer(), labelPlayerNameValue);
-
-        labelSessionIdValue.setContentMode(ContentMode.PREFORMATTED);
-        labelSessionNameValue.setContentMode(ContentMode.PREFORMATTED);
-        labelPlayerCountValue.setContentMode(ContentMode.PREFORMATTED);
-        labelPlayerNameValue.setContentMode(ContentMode.PREFORMATTED);
     }
 
     @Override

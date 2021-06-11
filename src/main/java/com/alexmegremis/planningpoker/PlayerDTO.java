@@ -9,6 +9,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PlayerDTO extends Hideable implements Identifiable, Serializable {
+
     private String id;
     private String name;
 
