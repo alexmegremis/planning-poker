@@ -1,14 +1,14 @@
 plugins {
     id 'org.springframework.boot' version '2.4.6'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'com.google.cloud.tools.jib' version '3.0.0'
+    id 'com.google.cloud.tools.jib' version '3.1.1'
     id 'java'
 }
 
 group = 'com.alexmegremis'
 version = '0.0.2-SNAPSHOT'
 sourceCompatibility = '8'
-//jib.outputPaths = "$rootDir/image/planning-poker.tar"
+dockerImageTag = "${version}"
 
 configurations {
     compileOnly {
@@ -24,7 +24,7 @@ ext {
     set('vaadinVersion', "8.13.1")
 }
 
-jib.to.image = 'dreg.aamegremis.com/alexmegremis/planning-poker:v0.0.2'
+jib.to.image = "dreg.aamegremis.com/alexmegremis/planning-poker:${dockerImageTag}"
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

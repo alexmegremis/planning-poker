@@ -14,29 +14,28 @@ variables:
 before_script:
   - export GRADLE_USER_HOME=`pwd`/.gradle
 
-#build:
-#  stage: build
-#  script: gradle --build-cache assemble
-#  cache:
-#    key: "$CI_COMMIT_REF_NAME"
-#    policy: push
-#    paths:
-#      - build
-#      - .gradle
-#
-#test:
-#  stage: test
-#  script: gradle check
-#  cache:
-#    key: "$CI_COMMIT_REF_NAME"
-#    policy: pull
-#    paths:
-#      - build
-#      - .gradle
+build:
+  stage: build
+  script: gradle --build-cache assemble
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: push
+    paths:
+      - build
+      - .gradle
+
+test:
+  stage: test
+  script: gradle check
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
+    policy: pull
+    paths:
+      - build
+      - .gradle
 
 docker:
   stage: deploy
-#  script: gradle --no-watch-fs clean jibBuildTar -DskipTests -Djib.outputPaths.tar=$(pwd)/../image/planning-poker.tar
   script: gradle --no-watch-fs clean jib -DskipTests
   cache:
     key: "$CI_COMMIT_REF_NAME"
