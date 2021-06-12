@@ -21,6 +21,7 @@ repositories {
 
 ext {
     set('vaadinVersion', "8.13.1")
+    set('dockerImageTag', "${version}")
 }
 
 jib.to.image = "dreg.aamegremis.com/alexmegremis/planning-poker:${dockerImageTag}"
